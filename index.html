@@ -65,7 +65,7 @@ body{background:var(--bg);color:var(--txt);min-height:100vh;overflow-x:hidden}
 .auth-note{font-size:11px;color:var(--mut);text-align:center;margin-top:14px;line-height:1.8}
 
 /* ═══ التطبيق ═══ */
-.app{max-width:520px;margin:0 auto;min-height:100vh;position:relative;z-index:1;padding-bottom:80px;display:none}
+.app{max-width:520px;margin:0 auto;min-height:100vh;position:relative;z-index:1;padding-bottom:92px;display:none}
 body.logged .app{display:block}
 body.logged .auth-wrap{display:none}
 .page{display:none;animation:pageIn .45s var(--ease)}
@@ -76,17 +76,17 @@ header{position:sticky;top:0;z-index:50;background:rgba(5,7,12,.72);backdrop-fil
 .logo{display:flex;align-items:center;gap:10px;font-size:19px;font-weight:900}
 .logo .dot{width:37px;height:37px;border-radius:12px;background:var(--grad-lux);display:grid;place-items:center;font-size:16px;color:#fff}
 .logo .lg-span{background:var(--grad-lux);-webkit-background-clip:text;background-clip:text;color:transparent}
-.hright{display:flex;align-items:center;gap:8px}
-.balance-pill{background:var(--card);border:1px solid var(--line2);border-radius:99px;padding:8px 15px;font-size:12.5px;color:var(--mut);
-  font-weight:700;cursor:pointer}
-.balance-pill b{color:var(--accent)}
+.hdr-actions{display:flex;align-items:center;gap:8px}
 .mail-btn{position:relative;background:var(--card);border:1px solid var(--line2);border-radius:99px;width:40px;height:40px;
   display:grid;place-items:center;font-size:17px;cursor:pointer;transition:.25s}
 .mail-btn:active{transform:scale(.92)}
-.mail-badge{position:absolute;top:-4px;inset-inline-start:-4px;background:linear-gradient(135deg,var(--danger),#ff7854);color:#fff;
-  font-size:10px;font-weight:900;min-width:18px;height:18px;border-radius:99px;display:none;align-items:center;justify-content:center;padding:0 5px;
-  box-shadow:0 2px 8px rgba(255,77,106,.5)}
-.mail-badge.show{display:flex}
+.mail-badge{position:absolute;top:-5px;inset-inline-start:-5px;background:linear-gradient(135deg,var(--danger),#ff7854);color:#fff;
+  font-size:10px;font-weight:900;min-width:19px;height:19px;border-radius:99px;display:grid;place-items:center;padding:0 4px;
+  box-shadow:0 2px 8px rgba(255,77,106,.5);animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.15)}}
+.balance-pill{background:var(--card);border:1px solid var(--line2);border-radius:99px;padding:10px 15px;font-size:12.5px;color:var(--mut);
+  font-weight:700;cursor:pointer}
+.balance-pill b{color:var(--accent)}
 nav{position:fixed;bottom:0;left:0;right:0;z-index:100;display:flex;justify-content:center;
   background:rgba(8,11,18,.85);backdrop-filter:blur(24px);border-top:1px solid var(--line);
   padding:8px 10px max(12px,env(safe-area-inset-bottom))}
@@ -199,6 +199,9 @@ nav{position:fixed;bottom:0;left:0;right:0;z-index:100;display:flex;justify-cont
 .dfoot{padding:16px;border-top:1px solid var(--line)}
 .total-row{display:flex;justify-content:space-between;align-items:baseline;font-size:14px;margin-bottom:11px}
 .total-row b{background:var(--grad-lux);-webkit-background-clip:text;background-clip:text;color:transparent;font-size:24px;font-weight:900}
+.citem{display:flex;gap:12px;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px;margin-bottom:10px;align-items:center}
+.qty{display:flex;align-items:center;gap:8px}
+.qty button{width:26px;height:26px;border-radius:8px;border:1px solid var(--line2);background:rgba(255,255,255,.05);color:var(--txt);cursor:pointer}
 
 .modal{position:fixed;inset:0;background:rgba(0,0,0,.75);backdrop-filter:blur(8px);display:flex;align-items:flex-end;justify-content:center;
   z-index:300;opacity:0;pointer-events:none;transition:.3s}
@@ -221,15 +224,6 @@ nav{position:fixed;bottom:0;left:0;right:0;z-index:100;display:flex;justify-cont
 .toast.err{border-inline-start-color:var(--danger)}
 .toast.gold{border-inline-start-color:var(--gold)}
 @keyframes tin{from{opacity:0;transform:translateY(-14px)}}
-
-/* البريد */
-.mail-item{display:flex;gap:12px;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:13px 15px;margin-bottom:9px;align-items:flex-start}
-.mail-item .mic{width:38px;height:38px;border-radius:12px;display:grid;place-items:center;font-size:17px;flex-shrink:0}
-.mail-item .mic.ok{background:rgba(0,229,176,.1)}
-.mail-item .mic.err{background:rgba(255,77,106,.1)}
-.mail-item .mic.info{background:rgba(0,163,255,.1)}
-.mail-item b{font-size:13px;display:block;line-height:1.7}
-.mail-item span{font-size:10.5px;color:var(--mut)}
 
 /* معرض الصور */
 .gallery-modal{z-index:400}
@@ -352,11 +346,11 @@ input[type="datetime-local"]{direction:ltr;text-align:left}
 <div class="app">
   <header><div class="hwrap">
     <div class="logo"><div class="dot">◆</div>NOVA&nbsp;<span class="lg-span">Store</span></div>
-    <div class="hright">
-      <div class="balance-pill" onclick="goTo('balance')">الرصيد: <b id="hdrBalance">0.00</b> USDT</div>
-      <div class="mail-btn" onclick="openMailbox()" title="صندوق البريد">📬
-        <span class="mail-badge" id="mailBadge">0</span>
+    <div class="hdr-actions">
+      <div class="mail-btn" id="mailBtn" onclick="openMailbox()" title="صندوق البريد">📬
+        <span class="mail-badge" id="mailBadge" style="display:none">0</span>
       </div>
+      <div class="balance-pill" onclick="goTo('balance')">الرصيد: <b id="hdrBalance">0.00</b> USDT</div>
     </div>
   </div></header>
 
@@ -412,10 +406,10 @@ input[type="datetime-local"]{direction:ltr;text-align:left}
       <div class="stat"><span>الرصيد</span><b id="accBal">0</b></div>
     </div>
     <div class="menu">
+      <button class="mrow" onclick="openMailbox()"><div class="mi">📬</div>
+        <div class="mt"><b>صندوق البريد</b><span>إشعارات القبول والرفض من الإدارة</span></div><div class="arrow">←</div></button>
       <button class="mrow" onclick="showOrdersSheet()"><div class="mi">🧾</div>
         <div class="mt"><b>سجل الطلبات</b><span>تتبع طلبات شحنك وحالات المراجعة</span></div><div class="arrow">←</div></button>
-      <button class="mrow" onclick="openMailbox()"><div class="mi">📬</div>
-        <div class="mt"><b>صندوق البريد</b><span>إشعارات القبول والرفض ونتائج طلباتك</span></div><div class="arrow">←</div></button>
       <button class="mrow" onclick="contactSupport()"><div class="mi">💬</div>
         <div class="mt"><b>الدعم الفني</b><span>تواصل مباشر عبر تيليجرام</span></div><div class="arrow">←</div></button>
       <button class="mrow" onclick="openAdmin()"><div class="mi">⚙️</div>
@@ -437,17 +431,30 @@ input[type="datetime-local"]{direction:ltr;text-align:left}
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7"/></svg>حسابي</button>
 </div></nav>
 
-<!-- الدفع المباشر -->
+<!-- السلة (تبقى متاحة للجمع، لكن "اشترِ الآن" يدفع مباشرة) -->
+<div class="overlay" id="overlay" onclick="closeAll()"></div>
+<div class="drawer" id="cartDrawer">
+  <div class="dhead"><h3>🛒 سلة الشحن</h3>
+    <button onclick="closeAll()" style="background:none;border:none;color:var(--mut);font-size:18px;cursor:pointer">✕</button></div>
+  <div class="dbody" id="cartBody"></div>
+  <div class="dfoot">
+    <div class="total-row"><span>رصيدك الحالي</span><b id="cartMyBal" style="font-size:15px">0.00</b></div>
+    <div class="total-row"><span>الإجمالي</span><b id="cartTotal">0.00 USDT</b></div>
+    <button class="btn" onclick="checkoutCart()">💳 الدفع من الرصيد</button>
+  </div>
+</div>
+
+<!-- الدفع (تأكيد الخصم من الرصيد) -->
 <div class="modal" id="payModal"><div class="sheet">
   <div class="handle"></div>
-  <h3>💳 الدفع من الرصيد</h3>
+  <h3>💳 تأكيد الدفع من الرصيد</h3>
   <p style="font-size:12.5px;color:var(--mut);margin-bottom:12px">سيتم خصم المبلغ مباشرة من رصيد حسابك</p>
-  <div class="step"><div class="n">1</div><p>الباقة المطلوبة</p></div>
+  <div class="step"><div class="n">1</div><p>باقات الشحن المطلوبة</p></div>
   <div id="payItems" style="font-size:13px;background:rgba(0,0,0,.25);border-radius:12px;padding:12px 14px;line-height:2"></div>
   <div class="step"><div class="n">2</div><p>المبلغ المطلوب خصمه من رصيدك</p></div>
   <div class="amt"><span id="payAmount"></span> <span style="font-size:15px">USDT</span></div>
   <div style="text-align:center;font-size:13px;margin-bottom:14px">رصيدك بعد الشراء: <b id="payAfter" style="color:var(--accent)"></b> USDT</div>
-  <div class="fgroup"><label>معرف اللاعب (Player ID)</label><input id="custNote" placeholder="مثال: 5123456789" style="direction:ltr;text-align:left"></div>
+  <div class="fgroup"><label>معرف اللاعب (Player ID) — اختياري للباقات المحددة</label><input id="custNote" placeholder="مثال: 5123456789" style="direction:ltr;text-align:left"></div>
   <button class="btn" id="verifyBtn" onclick="submitOrder()">✅ تأكيد الشراء والخصم</button>
   <button class="btn gray" onclick="closeAll()">إلغاء</button>
   <p id="payMsg" class="msg"></p>
@@ -472,15 +479,15 @@ input[type="datetime-local"]{direction:ltr;text-align:left}
   <div id="ordersSheetList" style="margin-top:12px"></div>
 </div></div>
 
-<!-- صندوق البريد -->
-<div class="modal" id="mailModal"><div class="sheet">
+<!-- صندوق البريد (إشعارات المستخدم) -->
+<div class="modal" id="notifModal"><div class="sheet">
   <div class="handle"></div><h3>📬 صندوق البريد</h3>
-  <p style="font-size:11.5px;color:var(--mut);margin-bottom:10px">كل إشعارات القبول والرفض تصل إلى هنا</p>
-  <div id="mailList"></div>
-  <button class="btn gray" style="margin-top:12px" onclick="closeAll()">إغلاق</button>
+  <p style="font-size:12px;color:var(--mut);margin-bottom:10px">إشعارات القبول والرفض وتعديلات الرصيد تصل هنا</p>
+  <div id="notifList" style="margin-top:12px"></div>
+  <button class="btn gray" style="margin-top:12px" onclick="closeAll();markAllRead()">✓ تحديد الكل كمقروء</button>
 </div></div>
 
-<!-- معرض صور الباقة -->
+<!-- معرض صور المنتج -->
 <div class="modal gallery-modal" id="galleryModal"><div class="sheet">
   <div class="handle"></div>
   <h3 id="galName">🖼️ صور الباقة</h3>
@@ -488,7 +495,7 @@ input[type="datetime-local"]{direction:ltr;text-align:left}
   <div class="gal-thumbs" id="galThumbs"></div>
   <div class="gal-nav">
     <button onclick="galStep(-1)">← السابقة</button>
-    <button onclick="buyNow(galProductId)">⚡ شراء مباشر</button>
+    <button onclick="buyNow(galProductId);closeAll()">⚡ شراء مباشر</button>
     <button onclick="galStep(1)">التالية →</button>
   </div>
 </div></div>
@@ -564,7 +571,7 @@ input[type="datetime-local"]{direction:ltr;text-align:left}
         <p id="tmMsg" class="msg"></p>
       </div>
       <div class="panel"><h3>➕ إضافة باقة شدات جديدة</h3>
-        <div class="fgroup"><label>اسم الباقة</label><input id="npName" placeholder="مثال: 660 شدة + 60 بونص"></div>
+        <div class="fgroup"><label>اسم الباقة</label><input id="npName" placeholder="مثال: 660 شدة + 60 bonus"></div>
         <div class="form-2col">
           <div class="fgroup"><label>السعر (USDT)</label><input id="npPrice" type="number" min="1" placeholder="10"></div>
           <div class="fgroup"><label>السعر قبل الخصم</label><input id="npOld" type="number" min="0" placeholder="14"></div>
@@ -653,14 +660,14 @@ const DEFAULT_BANNER = {
   endedMsg: true
 };
 const DEFAULT_PRODUCTS = [
-  {id:1, name:"60 شدة (UC)",           price:1.2,  old:1.5,  img:"🪙", cat:"شدات UC",  desc:"شحن مباشر بالـ ID · تسليم فوري", photos:[]},
-  {id:2, name:"325 شدة + 25 بونص",     price:5.5,  old:6.5,  img:"💰", cat:"شدات UC",  desc:"الأكثر مبيعًا · تسليم خلال دقائق", photos:[]},
-  {id:3, name:"660 شدة + 60 بونص",     price:10.5, old:13,   img:"💎", cat:"شدات UC",  desc:"أفضل قيمة مقابل السعر", photos:[]},
-  {id:4, name:"1800 شدة + 300 بونص",   price:26,   old:32,   img:"👑", cat:"شدات UC",  desc:"باقة الملوك · تسليم مباشر", photos:[]},
-  {id:5, name:"3850 شدة + 850 بونص",   price:52,   old:65,   img:"🏆", cat:"شدات UC",  desc:"للاعبين المحترفين", photos:[]},
-  {id:6, name:"8100 شدة + 2000 بونص",  price:105,  old:130,  img:"🔥", cat:"شدات UC",  desc:"أكبر باقة · أقوى توفير", photos:[]},
-  {id:7, name:"تمرير أسبوعي (RP)",     price:2.5,  old:3.5,  img:"🎫", cat:"تمرييرات", desc:"Royal Pass أسبوعي كامل", photos:[]},
-  {id:8, name:"تمرير شهري (RP+)",      price:9.5,  old:12,   img:"🎖️", cat:"تمرييرات", desc:"تمرير شهري + مكافآت حصرية", photos:[]},
+  {id:1, name:"60 شدة (UC)",        price:1.2,  old:1.5,  img:"🪙", cat:"شدات UC",   desc:"شحن مباشر بالـ ID · تسليم فوري", photos:[]},
+  {id:2, name:"325 شدة + 25 bonus", price:5.5,  old:6.5,  img:"💰", cat:"شدات UC",   desc:"الأكثر مبيعًا · تسليم خلال دقائق", photos:[]},
+  {id:3, name:"660 شدة + 60 bonus", price:10.5, old:13,   img:"💎", cat:"شدات UC",   desc:"أفضل قيمة مقابل السعر", photos:[]},
+  {id:4, name:"1800 شدة + 300 bonus", price:26,  old:32,   img:"👑", cat:"شدات UC",   desc:"باقة الملوك · تسليم مباشر", photos:[]},
+  {id:5, name:"3850 شدة + 850 bonus", price:52,  old:65,   img:"🏆", cat:"شدات UC",   desc:"للاعبين المحترفين", photos:[]},
+  {id:6, name:"8100 شدة + 2000 bonus", price:105, old:130, img:"🔥", cat:"شدات UC",   desc:"أكبر باقة · أقوى توفير", photos:[]},
+  {id:7, name:"تمرير أسبوعي (RP)",   price:2.5,  old:3.5,  img:"🎫", cat:"تمرييرات",  desc:"Royal Pass أسبوعي كامل", photos:[]},
+  {id:8, name:"تمرير شهري (RP+)",    price:9.5,  old:12,   img:"🎖️", cat:"تمرييرات",  desc:"تمرير شهري + مكافآت حصرية", photos:[]},
 ];
 
 /* ═══════════ التخزين ═══════════ */
@@ -687,6 +694,8 @@ const store = {
   set session(v){ storeSet("nova_session", v); },
   get orders(){ return storeGet("nova_orders", []); },
   set orders(v){ storeSet("nova_orders", v); },
+  get cart(){ return storeGet("nova_cart", []); },
+  set cart(v){ storeSet("nova_cart", v); },
   get promos(){ return storeGet("nova_promos", []); },
   set promos(v){ storeSet("nova_promos", v); },
 };
@@ -695,56 +704,26 @@ function getBanner(){
 }
 function setBanner(v){ storeSet("nova_banner", v); }
 
-const balKey   = (phone) => "nova_balance_" + (phone || (store.session ? store.session.phone : ""));
-const txKey    = (phone) => "nova_tx_" + (phone || (store.session ? store.session.phone : ""));
-const mailKey  = (phone) => "nova_mail_" + phone;
-const unreadKey= (phone) => "nova_unread_" + phone;
+const balKey = (phone) => "nova_balance_" + (phone || (store.session ? store.session.phone : ""));
+const txKey  = (phone) => "nova_tx_" + (phone || (store.session ? store.session.phone : ""));
+const notifKey = (phone) => "nova_notif_" + phone;
+const mailReadKey = (phone) => "nova_mailread_" + phone;
 function getBalance(phone){ return parseFloat(localStorage.getItem(balKey(phone)) || "0"); }
 function setBalance(v, phone){ localStorage.setItem(balKey(phone), String(v)); }
 function getTx(phone){ return storeGet(txKey(phone), []); }
 function setTx(v, phone){ storeSet(txKey(phone), v.slice(0,50)); }
-
-/* ═══════════ صندوق البريد ═══════════ */
-function getMail(phone){ return storeGet(mailKey(phone), []); }
-function unreadCount(phone){ return parseInt(localStorage.getItem(unreadKey(phone)) || "0"); }
-/* إرسال رسالة إلى صندوق بريد المستخدم */
-function sendMail(phone, title, body, type){
-  const box = getMail(phone);
-  box.unshift({ title: title, body: body || "", type: type || "info", time: Date.now(), read: false });
-  storeSet(mailKey(phone), box.slice(0, 50));
-  if(phone === (store.session ? store.session.phone : "")){
-    renderMailBadge();
-    toast(title, type === "err" ? "err" : "gold");
-  }
+function getNotifs(phone){ return storeGet(notifKey(phone), []); }
+function pushNotif(phone, text, type){
+  const n = getNotifs(phone);
+  n.unshift({ text: text, type: type || "ok", time: Date.now() });
+  storeSet(notifKey(phone), n.slice(0, 50));
+  updateMailBadge();
 }
-function markAllRead(phone){
-  const box = getMail(phone);
-  for(let i=0;i<box.length;i++) box[i].read = true;
-  storeSet(mailKey(phone), box);
-  localStorage.setItem(unreadKey(phone), "0");
-  renderMailBadge();
-}
-function renderMailBadge(){
-  const badge = document.getElementById("mailBadge");
-  if(!badge) return;
-  if(!store.session){ badge.classList.remove("show"); return; }
-  const n = unreadCount(store.session.phone);
-  badge.textContent = n > 9 ? "9+" : n;
-  badge.classList.toggle("show", n > 0);
-}
-function openMailbox(){
-  const s = store.session;
-  if(!s) return;
-  const box = getMail(s.phone);
-  document.getElementById("mailList").innerHTML = box.map(function(m){
-    const icon = m.type === "err" ? "❌" : m.type === "ok" ? "✅" : "ℹ️";
-    return '<div class="mail-item"><div class="mic ' + m.type + '">' + icon + '</div>' +
-      '<div style="flex:1"><b>' + esc(m.title) + '</b>' +
-      (m.body ? '<div style="font-size:12px;color:var(--mut);line-height:1.8;margin-top:3px">' + esc(m.body) + '</div>' : '') +
-      '<span>' + new Date(m.time).toLocaleString("ar", {dateStyle:"short", timeStyle:"short"}) + '</span></div></div>';
-  }).join("") || '<div class="empty" style="padding:30px 0">الصندوق فارغ ✨ لا رسائل بعد</div>';
-  markAllRead(s.phone);
-  document.getElementById("mailModal").classList.add("show");
+function getMailRead(phone){ return storeGet(mailReadKey(phone), 0); }
+function markAllRead(){
+  if(!store.session) return;
+  storeSet(mailReadKey(store.session.phone), Date.now() + 60000);
+  updateMailBadge();
 }
 
 /* ═══════════ أدوات ═══════════ */
@@ -782,6 +761,32 @@ function prodPhotos(p){
   if(p.photos && p.photos.length) return p.photos;
   if(p.photo) return [p.photo];
   return [];
+}
+
+/* ═══════════ صندوق البريد ═══════════ */
+function unreadCount(){
+  const s = store.session;
+  if(!s) return 0;
+  const readAt = getMailRead(s.phone);
+  return getNotifs(s.phone).filter(function(n){ return n.time > readAt; }).length;
+}
+function updateMailBadge(){
+  const badge = document.getElementById("mailBadge");
+  if(!badge) return;
+  const n = unreadCount();
+  badge.style.display = n > 0 ? "grid" : "none";
+  badge.textContent = n > 99 ? "99+" : n;
+}
+function openMailbox(){
+  const s = store.session;
+  if(!s) return;
+  const list = getNotifs(s.phone);
+  document.getElementById("notifList").innerHTML = list.map(function(n){
+    return '<div class="tx" style="margin:0 0 9px"><div><b>' + esc(n.text) + '</b>' +
+      '<span>' + new Date(n.time).toLocaleString("ar", {dateStyle:"short", timeStyle:"short"}) + '</span></div>' +
+      '<div class="amt ' + (n.type === "err" ? "minus" : "plus") + '">' + (n.type === "err" ? "✕" : "✓") + '</div></div>';
+  }).join("") || '<div class="empty" style="padding:20px 0">📭 لا رسائل بعد — إشعارات الطلبات ستظهر هنا</div>';
+  document.getElementById("notifModal").classList.add("show");
 }
 
 /* ═══════════ العروض والخصومات ═══════════ */
@@ -858,7 +863,6 @@ function updateTimer(){
 }
 setInterval(updateTimer, 1000);
 
-/* ─── إعدادات البانر ─── */
 function saveBannerCfg(withMsg){
   const b = getBanner();
   b.show = document.getElementById("cfBannerShow").checked;
@@ -876,7 +880,6 @@ function fillBannerCfg(){
   document.getElementById("cfBig").value = b.big || "";
   document.getElementById("cfEndsLabel").value = b.endsLabel || "";
 }
-/* ─── إعدادات المؤقت ─── */
 function fillTimerCfg(){
   const b = getBanner();
   document.getElementById("cfTimerShow").checked = !!b.timer;
@@ -935,7 +938,6 @@ async function doRegister(){
   btn.disabled = false; btn.innerHTML = "إنشاء الحساب ✨";
 
   notifyAdmin("👤 <b>تسجيل مستخدم جديد</b>\n\n📛 الاسم: <b>" + esc(name) + "</b>\n📱 " + esc(phone) + (ref ? "\n🎟️ دعوة: " + esc(ref) : ""));
-  sendMail(phone, "أهلًا بك في NOVA Store 🎮", "تم إنشاء حسابك بنجاح. اشحن رصيدك وابدأ بشراء شدات ببجي موبايل فورًا!", "info");
   startSession(user);
   toast("✅ تم إنشاء حسابك — أهلًا بك!");
 }
@@ -961,6 +963,7 @@ function startSession(user){
   store.session = { name: user.name, phone: user.phone, joined: user.joined };
   document.body.classList.add("logged");
   refreshAll();
+  updateMailBadge();
   notifyAdmin("🔓 <b>دخول</b> — " + esc(user.name) + " (" + esc(user.phone) + ")");
 }
 function logout(){
@@ -985,6 +988,8 @@ function goTo(page){
   if(page === "deals"){ renderBanner(); updateTimer(); renderActivePromos(); renderDeals(); }
 }
 function closeAll(){
+  document.getElementById("cartDrawer").classList.remove("show");
+  document.getElementById("overlay").classList.remove("show");
   const mods = document.querySelectorAll(".modal");
   for(let i=0;i<mods.length;i++) mods[i].classList.remove("show");
 }
@@ -1026,7 +1031,7 @@ function renderProducts(){
       '<div class="thumb" onclick="openGallery(' + p.id + ')">' + img + cnt + tag + '</div>' +
       '<div class="body"><h3>' + esc(p.name) + '</h3><div class="desc">' + esc(p.desc || "") + '</div>' +
       '<div style="margin:6px 0 0"><span class="price">' + money(ep) + '</span> ' + old + '</div>' +
-      '<button class="buy" onclick="buyNow(' + p.id + ',this)">⚡ اشترِ الآن</button></div></div>';
+      '<button class="buy" onclick="buyNow(' + p.id + ',this)">اشترِ الآن ⚡</button></div></div>';
   }).join("") || '<div class="empty">لا نتائج 🔍</div>';
 }
 function renderDeals(){
@@ -1040,7 +1045,7 @@ function renderDeals(){
     return '<div class="deal"><div class="ic">' + ic + '</div>' +
       '<div class="inf"><b>' + esc(p.name) + '</b><div class="p">' + money(ep) +
       (ep < +p.price ? ' <s>' + money(p.price) + '</s>' : '') + '</div></div>' +
-      '<button class="go" onclick="buyNow(' + p.id + ',null)">اشترِ الآن</button></div>';
+      '<button class="go" onclick="buyNow(' + p.id + ')">اشترِ الآن</button></div>';
   }).join("") || '<div class="empty">لا عروض حاليًا</div>';
 }
 
@@ -1074,81 +1079,48 @@ function galStep(d){
   renderGal();
 }
 
-/* ═══════════ الشراء المباشر ═══════════ */
-let payCtx = null;
-/* الضغط على "اشترِ الآن" يفتح الدفع مباشرة — بدون سلة */
-function buyNow(id, btn){
-  const p = store.products.find(function(x){ return x.id === id; });
-  if(!p) return;
-  const s = store.session;
-  if(!s) return toast("سجّل دخولك أولًا", "err");
-  const ep = effectivePrice(p);
-  const bal = getBalance();
-  if(ep > bal){
-    toast("❌ رصيدك غير كافي — سعر الباقة " + money(ep) + " USDT ورصيدك " + money(bal) + " USDT. اشحن رصيدك أولًا.", "err");
-    return;
-  }
-  payCtx = {
-    productId: p.id,
-    amount: +ep.toFixed(2),
-    item: p.name + " ×1"
-  };
-  document.getElementById("payItems").textContent = p.name + " — " + money(ep) + " USDT";
-  document.getElementById("payAmount").textContent = money(payCtx.amount);
-  document.getElementById("payAfter").textContent = money(bal - payCtx.amount);
-  document.getElementById("custNote").value = "";
-  document.getElementById("payMsg").textContent = "";
-  closeAll();
-  document.getElementById("payModal").classList.add("show");
-  if(btn){ btn.textContent = "جارٍ الفتح..."; setTimeout(function(){ btn.textContent = "⚡ اشترِ الآن"; }, 800); }
+/* ═══════════ السلة (اختيارية) ═══════════ */
+function addToCart(id){
+  const cart = store.cart;
+  const ex = cart.find(function(c){ return c.id === id; });
+  if(ex) ex.qty++; else cart.push({ id: id, qty: 1 });
+  store.cart = cart;
+  renderCart();
+  toast("✅ أُضيف إلى السلة");
 }
-async function submitOrder(){
-  const s = store.session;
-  const btn = document.getElementById("verifyBtn");
-  const bal = getBalance();
-  if(payCtx.amount > bal){
-    setErr("payMsg", "❌ رصيدك غير كافي لإتمام الشراء");
-    return;
-  }
-  btn.disabled = true;
-  btn.innerHTML = '<span class="spin"></span>جارٍ خصم المبلغ...';
-
-  /* الخصم الفوري من الرصيد — لا يُرجع إلا إذا رفض المدير الطلب */
-  setBalance(+(bal - payCtx.amount).toFixed(2));
-  const tx = getTx();
-  tx.unshift({ label: "شراء شدات: " + payCtx.item, amount: payCtx.amount, plus: false, time: Date.now() });
-  setTx(tx);
-
-  const id = nextReqId();
-  const playerId = document.getElementById("custNote").value.trim();
-  store.orders = [{ id: id, type: "order", item: payCtx.item, amount: payCtx.amount,
-    customer: s.name, phone: s.phone, note: playerId,
-    paidFrom: "balance", status: "pending", time: Date.now() }]
-    .concat(store.orders).slice(0, 300);
-
-  /* رسالة في البريد: استلمنا طلبك وجارٍ المراجعة */
-  sendMail(s.phone, "📥 استلمنا طلبك #" + id,
-    "الباقة: " + payCtx.item + " — " + money(payCtx.amount) + " USDT\nتم خصم المبلغ من رصيدك وجارٍ مراجعة الطلب من الإدارة. ستصلك رسالة عند القبول أو الرفض.", "info");
-
-  await notifyAdmin(
-    "🎮 <b>طلب شدات جديد #" + id + " — مدفوع من الرصيد</b>\n\n" +
-    "👤 " + esc(s.name) + " — " + esc(s.phone) + "\n" +
-    "📦 <b>" + esc(payCtx.item) + "</b>\n" +
-    (playerId ? "🆔 Player ID: <code>" + esc(playerId) + "</code>\n" : "") +
-    "💵 <b>" + money(payCtx.amount) + " USDT</b> (خُصمت من الرصيد)\n" +
-    "💼 رصيده الآن: " + money(getBalance(s.phone)) + " USDT" +
-    "\n\nللموافقة: <b>/approve " + id + "</b>\nللرفض وإرجاع المبلغ: <b>/reject " + id + "</b>");
-
-  btn.disabled = false;
-  btn.innerHTML = "✅ تأكيد الشراء والخصم";
-  setOk("payMsg", "✅ تم الدفع بنجاح — طلبك قيد المراجعة وسيتم شحن الشدات قريبًا");
-  toast("✅ تم خصم " + money(payCtx.amount) + " USDT من رصيدك", "gold");
-  refreshAll();
-  setTimeout(closeAll, 2200);
+function chQty(id, d){
+  let cart = store.cart;
+  const it = cart.find(function(c){ return c.id === id; });
+  if(!it) return;
+  it.qty += d;
+  if(it.qty <= 0) cart = cart.filter(function(c){ return c.id !== id; });
+  store.cart = cart;
+  renderCart();
 }
-function copyAddr(){
-  if(store.cfg.wallet) navigator.clipboard.writeText(store.cfg.wallet);
-  toast("📋 نُسخ العنوان");
+function cartTotal(){
+  return store.cart.reduce(function(s, c){
+    const p = store.products.find(function(x){ return x.id === c.id; });
+    return s + (p ? effectivePrice(p) * c.qty : 0);
+  }, 0);
+}
+function renderCart(){
+  const cart = store.cart;
+  document.getElementById("cartBody").innerHTML = cart.map(function(c){
+    const p = store.products.find(function(x){ return x.id === c.id; });
+    if(!p) return "";
+    return '<div class="citem"><div style="width:46px;height:46px;border-radius:12px;background:rgba(255,255,255,.05);display:grid;place-items:center;font-size:22px;overflow:hidden">' +
+      (prodPhotos(p).length ? '<img src="' + esc(prodPhotos(p)[0]) + '" style="width:100%;height:100%;object-fit:cover" alt="">' : esc(p.img || "🪙")) + '</div>' +
+      '<div style="flex:1"><b style="font-size:13px;display:block">' + esc(p.name) + '</b>' +
+      '<div class="plus" style="font-weight:900;font-size:13px">' + money(effectivePrice(p) * c.qty) + ' USDT</div></div>' +
+      '<div class="qty"><button onclick="chQty(' + p.id + ',1)">+</button><span>' + c.qty + '</span><button onclick="chQty(' + p.id + ',-1)">−</button></div></div>';
+  }).join("") || '<div class="empty">سلتك فارغة ✨</div>';
+  document.getElementById("cartTotal").textContent = money(cartTotal()) + " USDT";
+  document.getElementById("cartMyBal").textContent = money(getBalance()) + " USDT";
+}
+function openCart(){
+  renderCart();
+  document.getElementById("cartDrawer").classList.add("show");
+  document.getElementById("overlay").classList.add("show");
 }
 
 /* ═══════════ الرصيد ═══════════ */
@@ -1173,7 +1145,6 @@ function topUpFlow(){
 function withdrawFlow(){
   const s = store.session;
   notifyAdmin("💸 <b>طلب استرجاع رصيد</b>\n\n👤 " + esc(s.name) + "\n📱 " + esc(s.phone) + "\n💵 المتاح: " + money(getBalance()) + " USDT\n\n⏳ بانتظار تأكيد المدير");
-  sendMail(s.phone, "💸 طلب استرجاع قيد المراجعة", "وصل طلب استرجاع رصيدك للإدارة وسيتم التواصل معك قريبًا.", "info");
   toast("📤 أُرسل طلب الاسترجاع للمدير — قيد المراجعة", "gold");
 }
 function submitTopUp(){
@@ -1187,8 +1158,6 @@ function submitTopUp(){
     phone: s.phone, status: "pending", time: Date.now() }].concat(store.orders).slice(0, 300);
   notifyAdmin("💰 <b>طلب شحن رصيد #" + id + "</b>\n\n👤 " + esc(s.name) + "\n📱 " + esc(s.phone) +
     "\n💵 المبلغ: <b>" + money(amount) + " USDT</b>\n🔗 TXID: <code>" + esc(txid) + "</code>\n\nللموافقة: <b>/approve " + id + "</b>");
-  sendMail(s.phone, "📥 طلب شحن #" + id قيد المراجعة".replace('"','') , "", "info");
-  sendMail(s.phone, "📥 طلب شحن #" + id + " قيد المراجعة", "أرسلنا طلب شحن رصيدك للمدير. ستصلك رسالة عند التحقق من TXID.", "info");
   setOk("tuMsg", "✅ أُرسل طلب الشحن للمدير — قيد المراجعة");
   toast("📤 أُرسل طلب الشحن — بانتظار المراجعة", "gold");
   setTimeout(closeAll, 1800);
@@ -1223,6 +1192,105 @@ function showOrdersSheet(){
 function contactSupport(){
   if(store.cfg.support) window.open(store.cfg.support, "_blank");
   else toast("أضف رابط الدعم من لوحة الإدارة", "err");
+}
+
+/* ═══════════ الشراء المباشر + الدفع من الرصيد ═══════════ */
+let payCtx = null;
+/* الشراء المباشر لمنتج واحد — بدون سلة */
+function buyNow(id){
+  const p = store.products.find(function(x){ return x.id === id; });
+  if(!p) return;
+  const s = store.session;
+  if(!s){ toast("سجّل دخولك أولًا", "err"); return; }
+  const ep = effectivePrice(p);
+  const bal = getBalance();
+  if(ep > bal){
+    toast("❌ رصيدك غير كافي — المطلوب " + money(ep) + " USDT ورصيدك " + money(bal) + " USDT. اشحن رصيدك أولًا.", "err");
+    return;
+  }
+  payCtx = {
+    amount: ep,
+    items: p.name + " ×1 = " + money(ep)
+  };
+  document.getElementById("payItems").textContent = payCtx.items;
+  document.getElementById("payAmount").textContent = money(payCtx.amount);
+  document.getElementById("payAfter").textContent = money(bal - payCtx.amount);
+  document.getElementById("custNote").value = "";
+  document.getElementById("payMsg").textContent = "";
+  closeAll();
+  document.getElementById("payModal").classList.add("show");
+}
+/* الدفع من محتويات السلة (اختياري) */
+function checkoutCart(){
+  const cart = store.cart;
+  if(!cart.length) return toast("السلة فارغة", "err");
+  const s = store.session;
+  if(!s) return toast("سجّل دخولك أولًا", "err");
+  const total = +cartTotal().toFixed(2);
+  const bal = getBalance();
+  if(total > bal){
+    toast("❌ رصيدك غير كافي — المطلوب " + money(total) + " USDT ورصيدك " + money(bal) + " USDT. اشحن رصيدك أولًا.", "err");
+    return;
+  }
+  payCtx = {
+    amount: total,
+    items: cart.map(function(c){
+      const p = store.products.find(function(x){ return x.id === c.id; });
+      return p.name + " ×" + c.qty + " = " + money(effectivePrice(p) * c.qty);
+    }).join(" + ")
+  };
+  document.getElementById("payItems").textContent = payCtx.items;
+  document.getElementById("payAmount").textContent = money(payCtx.amount);
+  document.getElementById("payAfter").textContent = money(bal - payCtx.amount);
+  document.getElementById("custNote").value = "";
+  document.getElementById("payMsg").textContent = "";
+  closeAll();
+  document.getElementById("payModal").classList.add("show");
+}
+async function submitOrder(){
+  const s = store.session;
+  const btn = document.getElementById("verifyBtn");
+  const bal = getBalance();
+  if(!payCtx) return;
+  if(payCtx.amount > bal){
+    setErr("payMsg", "❌ رصيدك غير كافي لإتمام الشراء");
+    return;
+  }
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spin"></span>جارٍ خصم المبلغ...';
+
+  setBalance(+(bal - payCtx.amount).toFixed(2));
+  const tx = getTx();
+  tx.unshift({ label: "شراء شدات: " + payCtx.items, amount: payCtx.amount, plus: false, time: Date.now() });
+  setTx(tx);
+
+  const id = nextReqId();
+  const playerId = document.getElementById("custNote").value.trim();
+  store.orders = [{ id: id, type: "order", item: payCtx.items, amount: payCtx.amount,
+    customer: s.name, phone: s.phone, note: playerId,
+    paidFrom: "balance", status: "pending", time: Date.now() }]
+    .concat(store.orders).slice(0, 300);
+  store.cart = [];
+
+  await notifyAdmin(
+    "🎮 <b>طلب شدات جديد #" + id + " — مدفوع من الرصيد</b>\n\n" +
+    "👤 " + esc(s.name) + " — " + esc(s.phone) + "\n" +
+    "📦 <b>" + esc(payCtx.items) + "</b>\n" +
+    (playerId ? "🆔 Player ID: <code>" + esc(playerId) + "</code>\n" : "") +
+    "💵 <b>" + money(payCtx.amount) + " USDT</b> (خُصمت من الرصيد)\n" +
+    "💼 رصيده الآن: " + money(getBalance(s.phone)) + " USDT" +
+    "\n\nللموافقة: <b>/approve " + id + "</b>\nللرفض وإرجاع المبلغ: <b>/reject " + id + "</b>");
+
+  btn.disabled = false;
+  btn.innerHTML = "✅ تأكيد الشراء والخصم";
+  setOk("payMsg", "✅ تم الدفع بنجاح — طلبك قيد المراجعة وسيتم شحن الشدات قريبًا");
+  toast("✅ تم خصم " + money(payCtx.amount) + " USDT من رصيدك", "gold");
+  refreshAll();
+  setTimeout(closeAll, 2200);
+}
+function copyAddr(){
+  if(store.cfg.wallet) navigator.clipboard.writeText(store.cfg.wallet);
+  toast("📋 نُسخ العنوان");
 }
 
 /* ═══════════ تيليجرام ═══════════ */
@@ -1327,7 +1395,6 @@ async function handleCommand(cmd, chat){
     const u = store.users.find(function(x){ return x.phone === phone; });
     if(!u || !(amt > 0)) return sendTG(chat, "❌ الصيغة: /addbalance رقم_الهاتف المبلغ");
     addBalanceTo(phone, amt, "إضافة من المدير (تيليجرام)");
-    sendMail(phone, "💰 أُضيف رصيد لحسابك", "أُضيف " + money(amt) + " USDT إلى رصيدك من الإدارة. رصيدك الآن: " + money(getBalance(phone)) + " USDT", "ok");
     return sendTG(chat, "✅ أُضيف " + money(amt) + " USDT لرصيد " + esc(u.name) + " — الرصيد الآن: " + money(getBalance(phone)));
   }
   if(c === "/setbanner"){
@@ -1370,9 +1437,7 @@ async function handleCommand(cmd, chat){
   }
 }
 
-/* ═══════════ القبول / الرفض الموحّد ═══════════
-   القبول: لا يُرجع المبلغ — يُشحن الطلب + رسالة بريد للمستخدم
-   الرفض لطلب شراء: يُرجع المبلغ للرصيد + رسالة "يرجى إعادة المحاولة لاحقًا" */
+/* ═══════════ منطق القبول / الرفض الموحّد ═══════════ */
 function approveRequest(o, via){
   const orders = store.orders;
   const cur = orders.find(function(x){ return x.id === o.id; });
@@ -1381,15 +1446,14 @@ function approveRequest(o, via){
   store.orders = orders;
   if(cur.type === "topup"){
     addBalanceTo(cur.phone, cur.amount, "شحن رصيد (مقبول) #" + cur.id);
-    sendMail(cur.phone, "✅ تم التحقق بنجاح!",
-      "تم قبول طلب شحن الرصيد #" + cur.id + " وأُضيف مبلغ " + money(cur.amount) + " USDT إلى رصيدك. رصيدك الآن: " + money(getBalance(cur.phone)) + " USDT", "ok");
+    pushNotif(cur.phone, "✅ تم التحقق بنجاح! أُضيف " + money(cur.amount) + " USDT إلى رصيدك", "ok");
   } else {
-    sendMail(cur.phone, "✅ تم قبول طلبك #" + cur.id,
-      "الباقة: " + cur.item + "\nتم شحن الشدات على حسابك بنجاح. شكرًا لثقتك بـ NOVA Store! 🎮", "ok");
+    /* طلب شدات مقبول: لا يُرجع الرصيد — يُشحن الطلب فقط */
+    pushNotif(cur.phone, "✅ تمت الموافقة على طلب الشدات #" + cur.id + " — سيتم الشحن على حسابك قريبًا", "ok");
   }
-  notifyAdmin("✅ قبول الطلب #" + cur.id + " (عبر " + via + ") — أُرسل إشعار للبريد");
-  refreshAll(); renderAdminTables();
-  toast("✅ تم القبول وإشعار المستخدم", "ok");
+  notifyAdmin("✅ قبول الطلب #" + cur.id + " (عبر " + via + ")");
+  refreshAll(); renderAdminTables(); updateMailBadge();
+  toast("✅ تم القبول", "ok");
 }
 function rejectRequest(o, via){
   const orders = store.orders;
@@ -1398,20 +1462,18 @@ function rejectRequest(o, via){
   cur.status = "rejected";
   store.orders = orders;
   if(cur.type === "topup"){
-    sendMail(cur.phone, "❌ TXID غير صحيح",
-      "عنوان TXID الذي أرسلته في الطلب #" + cur.id + " غير صحيح. يرجى التحقق منه مرة أخرى وإرساله من جديد.", "err");
+    pushNotif(cur.phone, "❌ عنوان TXID الخاص بك غير صحيح، يرجى التحقق منه مرة أخرى وإرساله من جديد (طلب #" + cur.id + ")", "err");
   } else {
-    /* إرجاع المبلغ المخصوم إلى رصيد المستخدم */
+    /* طلب شدات مرفوض: يُرجع المبلغ للرصيد + رسالة بريد */
     setBalance(+(getBalance(cur.phone) + cur.amount).toFixed(2), cur.phone);
     const tx = getTx(cur.phone);
     tx.unshift({ label: "استرجاع مبلغ طلب #" + cur.id + " (مرفوض)", amount: cur.amount, plus: true, time: Date.now() });
     setTx(tx, cur.phone);
-    sendMail(cur.phone, "❌ تم رفض طلبك #" + cur.id,
-      "الباقة: " + cur.item + "\nنعتذر، تم رفض طلبك وإرجاع مبلغ " + money(cur.amount) + " USDT إلى رصيدك. يرجى إعادة المحاولة لاحقًا.", "err");
+    pushNotif(cur.phone, "❌ تم رفض طلبك #" + cur.id + " وأُرجع مبلغ " + money(cur.amount) + " USDT إلى رصيدك. يرجى إعادة المحاولة لاحقًا.", "err");
   }
-  notifyAdmin("❌ رفض الطلب #" + cur.id + " (عبر " + via + ") — أُرجع المبلغ وأُرسل إشعار للبريد");
-  refreshAll(); renderAdminTables();
-  toast("❌ تم الرفض وإرجاع المبلغ", "err");
+  notifyAdmin("❌ رفض الطلب #" + cur.id + " (عبر " + via + ")");
+  refreshAll(); renderAdminTables(); updateMailBadge();
+  toast("❌ تم الرفض", "err");
 }
 function addBalanceTo(phone, amount, label){
   setBalance(+(getBalance(phone) + amount).toFixed(2), phone);
@@ -1500,14 +1562,13 @@ function adminAdjust(sign){
   if(sign < 0 && amt > getBalance(currentUserId)) return setErr("umMsg", "❌ رصيد المستخدم " + money(getBalance(currentUserId)) + " USDT فقط — لا يمكن خصم أكثر منه");
   const label = (sign > 0 ? "إضافة رصيد من الإدارة" : "خصم من الإدارة") + (note ? " — " + note : "");
   addBalanceTo(currentUserId, sign * amt, label);
-  sendMail(currentUserId,
-    sign > 0 ? "💰 أُضيف رصيد لحسابك" : "⚠️ خُصم من رصيدك",
-    (sign > 0 ? "أُضيف " : "خُصم ") + money(amt) + " USDT " + (sign > 0 ? "إلى" : "من") + " رصيدك من الإدارة" + (note ? " — " + note : "") +
-    ". رصيدك الآن: " + money(getBalance(currentUserId)) + " USDT",
+  pushNotif(currentUserId,
+    sign > 0 ? "💰 أُضيف " + money(amt) + " USDT إلى رصيدك من الإدارة" + (note ? " — " + note : "")
+             : "⚠️ خُصم " + money(amt) + " USDT من رصيدك من الإدارة" + (note ? " — " + note : ""),
     sign > 0 ? "ok" : "err");
   notifyAdmin((sign > 0 ? "➕ إضافة " : "➖ خصم ") + money(amt) + " USDT " + (sign > 0 ? "لرصيد" : "من رصيد") + " " + esc(u.name) + " — الرصيد الآن: " + money(getBalance(currentUserId)));
   setOk("umMsg", "✅ تمت العملية — الرصيد الآن: " + money(getBalance(currentUserId)) + " USDT");
-  renderAdminTables(); renderBalance(); renderAccount();
+  renderAdminTables(); renderBalance(); renderAccount(); updateMailBadge();
 }
 
 /* ─── طلبات الشحن ─── */
@@ -1551,7 +1612,7 @@ function decideTopup(status){
   renderTopupList();
 }
 
-/* ─── العروض والخصومات ─── */
+/* ─── العروض والخصومات (لوحة الإدارة) ─── */
 function fillProductSelect(){
   const sel = document.getElementById("prProduct");
   sel.innerHTML = store.products.map(function(p){
@@ -1663,8 +1724,8 @@ function renderAdminTables(){
     (pend.map(function(o){
       return '<tr><td>' + o.id + '</td><td>' + esc(o.item || "") + '</td><td>' + money(o.amount) + '</td>' +
         '<td>' + esc(o.customer) + '<br><small style="color:var(--mut)">' + esc(o.phone) + (o.note ? ' · 🆔 ' + esc(o.note) : '') + '</small></td>' +
-        '<td><button class="mini ok" onclick="approveRequest(store.orders.find(function(x){return x.id===' + o.id + '}),\'لوحة الإدارة\')">قبول</button> ' +
-        '<button class="mini no" onclick="rejectRequest(store.orders.find(function(x){return x.id===' + o.id + '}),\'لوحة الإدارة\')">رفض</button></td></tr>';
+        '<td><button class="mini ok" onclick="approveOrderById(' + o.id + ',\'لوحة الإدارة\')">قبول</button> ' +
+        '<button class="mini no" onclick="rejectOrderById(' + o.id + ',\'لوحة الإدارة\')">رفض</button></td></tr>';
     }).join("") || '<tr><td colspan="5" style="text-align:center;color:var(--mut)">لا طلبات معلّقة ✅</td></tr>');
 
   renderTopupList();
@@ -1690,6 +1751,14 @@ function renderAdminTables(){
         '<td>' + esc(o.item || (o.type === "topup" ? "شحن رصيد" : "")) + '<br><small style="color:var(--mut)">' + esc(o.customer) + '</small></td>' +
         '<td>' + money(o.amount) + '</td><td>' + st + '</td></tr>';
     }).join("") || '<tr><td colspan="5" style="text-align:center;color:var(--mut)">لا طلبات بعد</td></tr>');
+}
+function approveOrderById(id, via){
+  const o = store.orders.find(function(x){ return x.id === id; });
+  if(o) approveRequest(o, via);
+}
+function rejectOrderById(id, via){
+  const o = store.orders.find(function(x){ return x.id === id; });
+  if(o) rejectRequest(o, via);
 }
 
 /* ═══════════ الجزيئات ═══════════ */
@@ -1736,9 +1805,9 @@ function renderAdminTables(){
 
 /* ═══════════ الإقلاع ═══════════ */
 function refreshAll(){
-  renderChips(); renderProducts(); renderDeals();
+  renderChips(); renderProducts(); renderDeals(); renderCart();
   renderBalance(); renderAccount(); renderActivePromos(); renderBanner(); updateTimer();
-  renderMailBadge();
+  updateMailBadge();
 }
 window.addEventListener("load", function(){
   const s = store.session;
