@@ -63,6 +63,8 @@ body{background:var(--bg);color:var(--txt);min-height:100vh;overflow-x:hidden}
   animation:sp .7s linear infinite;vertical-align:-3px;margin-inline-end:6px}
 @keyframes sp{to{transform:rotate(360deg)}}
 .auth-note{font-size:11px;color:var(--mut);text-align:center;margin-top:14px;line-height:1.8}
+.cloud-status{text-align:center;font-size:11px;margin-top:8px;font-weight:700}
+.cloud-ok{color:var(--accent)}.cloud-bad{color:var(--danger)}
 
 /* ═══ التطبيق ═══ */
 .app{max-width:520px;margin:0 auto;min-height:100vh;position:relative;z-index:1;padding-bottom:92px;display:none}
@@ -72,7 +74,7 @@ body.logged .auth-wrap{display:none}
 .page.active{display:block}
 @keyframes pageIn{from{opacity:0;transform:translateY(18px)}}
 header{position:sticky;top:0;z-index:50;background:rgba(5,7,12,.72);backdrop-filter:blur(20px);border-bottom:1px solid var(--line)}
-.hwrap{display:flex;align-items:center;justify-space-between;padding:13px 16px}
+.hwrap{display:flex;align-items:center;justify-content:space-between;padding:13px 16px}
 .logo{display:flex;align-items:center;gap:10px;font-size:19px;font-weight:900}
 .logo .dot{width:37px;height:37px;border-radius:12px;background:var(--grad-lux);display:grid;place-items:center;font-size:16px;color:#fff}
 .logo .lg-span{background:var(--grad-lux);-webkit-background-clip:text;background-clip:text;color:transparent}
@@ -339,6 +341,7 @@ input[type="datetime-local"]{direction:ltr;text-align:left}
     </div>
 
     <p class="auth-note">☁️ البيانات متزامنة ومحفوظة بأمان عبر قواعد بيانات JSONBin السحابية.</p>
+    <p class="cloud-status" id="cloudStatus"></p>
   </div>
 </div>
 
@@ -529,46 +532,14 @@ input[type="datetime-local"]{direction:ltr;text-align:left}
         </div>
         <div class="form-2col">
           <div class="fgroup"><label>يشمل</label>
-            <select id="prScope"><option value="all">كل الباقات</option><option value="product">باقة محددة</option></select></div>
+            <select id="prScope" onchange="document.getElementById('prProductWrap').style.display=this.value==='product'?'block':'none'">
+              <option value="all">كل الباقات</option><option value="product">باقة محددة</option></select></div>
           <div class="fgroup" id="prProductWrap" style="display:none"><label>الباقة</label>
             <select id="prProduct"></select></div>
         </div>
         <button class="btn gold" onclick="addPromo()">🎁 إضافة العرض</button>
         <p id="prMsg" class="msg"></p>
         <div id="promoTable" style="margin-top:8px"></div>
-      </div>
-      <div class="panel"><h3>📢 بانر قسم العروض</h3>
-        <p style="font-size:11.5px;color:var(--mut);margin-bottom:12px">عدّل نصوص البانر، أو أخفِ البانر بالكامل</p>
-        <div class="switch-row">
-          <div class="st"><b>إظهار البانر</b><span>الصندوق الملون أعلى صفحة العروض</span></div>
-          <label class="switch"><input type="checkbox" id="cfBannerShow" checked onchange="saveBannerCfg()"><span class="slider"></span></label>
-        </div>
-        <div class="fgroup"><label>السطر العلوي (الصغير)</label><input id="cfKicker" placeholder="⚡ عروض الأسبوع"></div>
-        <div class="fgroup"><label>العنوان الكبير</label><input id="cfBig" placeholder="خصومات حتى 40%"></div>
-        <div class="fgroup"><label>نص ما قبل المؤقت</label><input id="cfEndsLabel" placeholder="ينتهي العرض بعد:"></div>
-        <button class="btn gold" onclick="saveBannerCfg(true)">💾 حفظ نصوص البانر</button>
-        <p id="cfMsg" class="msg"></p>
-      </div>
-      <div class="panel"><h3>⏱️ المؤقت التنازلي</h3>
-        <p style="font-size:11.5px;color:var(--mut);margin-bottom:12px">تحكم كامل بالمؤقت: إخفاؤه، أو وضعه على العد اليومي المتجدد، أو تحديد تاريخ ووقت انتهاء مخصصين</p>
-        <div class="switch-row">
-          <div class="st"><b>إظهار المؤقت</b><span>مربعات الساعة/الدقيقة/الثانية أسفل البانر</span></div>
-          <label class="switch"><input type="checkbox" id="cfTimerShow" checked onchange="saveTimerCfg()"><span class="slider"></span></label>
-        </div>
-        <div class="fgroup"><label>وضع المؤقت</label>
-          <select id="cfTimerMode" onchange="toggleTimerModeUI()">
-            <option value="daily">يومي — يتجدد تلقائيًا كل 24 ساعة (ينتهي منتصف الليل)</option>
-            <option value="custom">مخصص — تاريخ ووقت انتهاء محددان</option>
-          </select></div>
-        <div id="cfCustomWrap" style="display:none">
-          <div class="fgroup"><label>تاريخ ووقت الانتهاء</label><input id="cfTimerEnd" type="datetime-local"></div>
-          <div class="switch-row">
-            <div class="st"><b>إظهار رسالة "انتهى العرض"</b><span>تظهر للمستخدمين بعد انتهاء الوقت المخصص</span></div>
-            <label class="switch"><input type="checkbox" id="cfEndedMsg" checked onchange="saveTimerCfg()"><span class="slider"></span></label>
-          </div>
-        </div>
-        <button class="btn gold" onclick="saveTimerCfg(true)">💾 حفظ إعدادات المؤقت</button>
-        <p id="tmMsg" class="msg"></p>
       </div>
       <div class="panel"><h3>➕ إضافة باقة شدات جديدة</h3>
         <div class="fgroup"><label>اسم الباقة</label><input id="npName" placeholder="مثال: 660 شدة + 60 bonus"></div>
@@ -603,8 +574,6 @@ input[type="datetime-local"]{direction:ltr;text-align:left}
           <b>/approve</b> رقم الطلب<br>
           <b>/reject</b> رقم الطلب<br>
           <b>/addbalance</b> رقم_الهاتف المبلغ<br>
-          <b>/setbanner</b> العنوان_الصغير|العنوان_الكبير|نص_المؤقت<br>
-          <b>/settimer</b> daily أو custom YYYY-MM-DDTHH:MM<br>
           <b>/setwallet</b> عنوان_المحفظة<br>
           <b>/orders</b> — الطلبات المعلّقة<br>
           <b>/products</b> — الباقات<br>
@@ -676,7 +645,7 @@ const DEFAULT_PRODUCTS = [
   {id:8, name:"تمرير شهري (RP+)",    price:9.5,  old:12,   img:"🎖️", cat:"تمرييرات",  desc:"تمرير شهري + مكافآت حصرية", photos:[]},
 ];
 
-/* ═══════════ مخزن البيانات بدمج JSONBin ═══════════ */
+/* ═══════════ مخزن البيانات ═══════════ */
 let db = {
   products: DEFAULT_PRODUCTS,
   users: [],
@@ -690,7 +659,42 @@ let db = {
   reqSeq: 0
 };
 
-// مزامنة جلب البيانات من JSONBin
+/* ─── حماية من تسابق الكتابة: طابور واحد للحفظ ─── */
+let writeQueue = Promise.resolve();
+let saveTimer = null;
+
+function scheduleSave(){
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(syncToCloud, 400);
+}
+
+async function syncToCloud(){
+  if(!JSONBIN_BIN_ID || JSONBIN_BIN_ID.includes("ضع_هنا")) return;
+  writeQueue = writeQueue.then(async function(){
+    try{
+      const res = await fetch(JSONBIN_URL, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          "X-Master-Key": JSONBIN_API_KEY
+        },
+        body: JSON.stringify(db)
+      });
+      if(res.ok){
+        setCloudStatus(true);
+      } else {
+        setCloudStatus(false, "فشل الحفظ السحابي (كود " + res.status + ")");
+        console.error("JSONBin save failed:", res.status, await res.text());
+        toast("⚠️ فشل الحفظ السحابي! كود الخطأ: " + res.status, "err");
+      }
+    }catch(e){
+      setCloudStatus(false, "لا يوجد اتصال بالتخزين السحابي");
+      console.error("Cloud save error:", e);
+    }
+  });
+  return writeQueue;
+}
+
 async function syncFromCloud(){
   if(!JSONBIN_BIN_ID || JSONBIN_BIN_ID.includes("ضع_هنا")) return;
   try{
@@ -700,48 +704,60 @@ async function syncFromCloud(){
     if(res.ok){
       const data = await res.json();
       if(data.record){
-        db = Object.assign({}, db, data.record);
-        if(!db.products || !db.products.length) db.products = DEFAULT_PRODUCTS;
+        db = normalizeDb(Object.assign({}, db, data.record));
         refreshAll();
+        setCloudStatus(true);
       }
+    } else {
+      setCloudStatus(false, "فشل جلب البيانات من السحابة (كود " + res.status + ")");
+      console.error("JSONBin fetch failed:", res.status, await res.text());
     }
-  }catch(e){ console.error("Cloud fetch error:", e); }
+  }catch(e){
+    setCloudStatus(false, "تعذر الاتصال بالسحابة — ستحفظ البيانات محليًا مؤقتًا");
+    console.error("Cloud fetch error:", e);
+  }
 }
 
-// مزامنة رفع البيانات إلى JSONBin
-async function syncToCloud(){
-  if(!JSONBIN_BIN_ID || JSONBIN_BIN_ID.includes("ضع_هنا")) return;
-  try{
-    await fetch(JSONBIN_URL, {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-        "X-Master-Key": JSONBIN_API_KEY
-      },
-      body: JSON.stringify(db)
-    });
-  }catch(e){ console.error("Cloud save error:", e); }
+function normalizeDb(d){
+  d.products = (d.products && d.products.length) ? d.products : DEFAULT_PRODUCTS;
+  d.users    = d.users    || [];
+  d.orders   = d.orders   || [];
+  d.promos   = d.promos   || [];
+  d.banner   = Object.assign({}, DEFAULT_BANNER, d.banner || {});
+  d.cfg      = d.cfg      || {};
+  d.balances = d.balances || {};
+  d.txs      = d.txs      || {};
+  d.notifs   = d.notifs   || {};
+  d.reqSeq   = d.reqSeq   || 0;
+  return d;
+}
+
+function setCloudStatus(ok, errMsg){
+  const el = document.getElementById("cloudStatus");
+  if(!el) return;
+  if(ok){ el.className = "cloud-status cloud-ok"; el.textContent = "☁️ متصل بالسحابة — البيانات محفوظة"; }
+  else  { el.className = "cloud-status cloud-bad"; el.textContent = "⚠️ " + (errMsg || "مشكلة في الاتصال"); }
 }
 
 const store = {
   get cfg(){ return db.cfg || {}; },
-  set cfg(v){ db.cfg = v; syncToCloud(); },
+  set cfg(v){ db.cfg = v; scheduleSave(); },
   get products(){ return db.products || DEFAULT_PRODUCTS; },
-  set products(v){ db.products = v; syncToCloud(); },
+  set products(v){ db.products = v; scheduleSave(); },
   get users(){ return db.users || []; },
-  set users(v){ db.users = v; syncToCloud(); },
+  set users(v){ db.users = v; scheduleSave(); },
   get session(){ try{ return JSON.parse(localStorage.getItem("nova_session")); }catch(e){ return null; } },
   set session(v){ localStorage.setItem("nova_session", JSON.stringify(v)); },
   get orders(){ return db.orders || []; },
-  set orders(v){ db.orders = v; syncToCloud(); },
+  set orders(v){ db.orders = v; scheduleSave(); },
   get cart(){ try{ return JSON.parse(localStorage.getItem("nova_cart")) || []; }catch(e){ return []; } },
   set cart(v){ localStorage.setItem("nova_cart", JSON.stringify(v)); },
   get promos(){ return db.promos || []; },
-  set promos(v){ db.promos = v; syncToCloud(); }
+  set promos(v){ db.promos = v; scheduleSave(); }
 };
 
 function getBanner(){ return Object.assign({}, DEFAULT_BANNER, db.banner || {}); }
-function setBanner(v){ db.banner = v; syncToCloud(); }
+function setBanner(v){ db.banner = v; scheduleSave(); }
 
 function getBalance(phone){
   const p = phone || (store.session ? store.session.phone : "");
@@ -750,7 +766,7 @@ function getBalance(phone){
 function setBalance(v, phone){
   const p = phone || (store.session ? store.session.phone : "");
   db.balances[p] = String(v);
-  syncToCloud();
+  scheduleSave();
 }
 function getTx(phone){
   const p = phone || (store.session ? store.session.phone : "");
@@ -759,14 +775,14 @@ function getTx(phone){
 function setTx(v, phone){
   const p = phone || (store.session ? store.session.phone : "");
   db.txs[p] = v.slice(0, 50);
-  syncToCloud();
+  scheduleSave();
 }
 function getNotifs(phone){ return db.notifs[phone] || []; }
 function pushNotif(phone, text, type){
   const n = getNotifs(phone);
   n.unshift({ text: text, type: type || "ok", time: Date.now() });
   db.notifs[phone] = n.slice(0, 50);
-  syncToCloud();
+  scheduleSave();
   updateMailBadge();
 }
 function getMailRead(phone){ try{ return JSON.parse(localStorage.getItem("nova_mailread_" + phone)) || 0; }catch(e){ return 0; } }
@@ -804,7 +820,7 @@ async function hash(str){
 }
 function nextReqId(){
   db.reqSeq = (db.reqSeq || 0) + 1;
-  syncToCloud();
+  scheduleSave();
   return db.reqSeq;
 }
 function prodPhotos(p){
@@ -846,7 +862,7 @@ function effectivePrice(p){
   const list = activePromos();
   for(let i=0;i<list.length;i++){
     const pr = list[i];
-    if(pr.scope === "all" || (pr.scope === "product" && pr.productId === p.id)){
+    if(pr.scope === "all" || (pr.scope === "product" && +pr.productId === p.id)){
       price = price * (1 - pr.percent/100);
     }
   }
@@ -913,49 +929,6 @@ function updateTimer(){
 }
 setInterval(updateTimer, 1000);
 
-function saveBannerCfg(withMsg){
-  const b = getBanner();
-  b.show = document.getElementById("cfBannerShow").checked;
-  b.kicker = document.getElementById("cfKicker").value.trim();
-  b.big = document.getElementById("cfBig").value.trim();
-  b.endsLabel = document.getElementById("cfEndsLabel").value.trim();
-  setBanner(b);
-  renderBanner(); updateTimer();
-  if(withMsg) setOk("cfMsg", "✅ تم حفظ البانر");
-}
-function fillBannerCfg(){
-  const b = getBanner();
-  document.getElementById("cfBannerShow").checked = !!b.show;
-  document.getElementById("cfKicker").value = b.kicker || "";
-  document.getElementById("cfBig").value = b.big || "";
-  document.getElementById("cfEndsLabel").value = b.endsLabel || "";
-}
-function fillTimerCfg(){
-  const b = getBanner();
-  document.getElementById("cfTimerShow").checked = !!b.timer;
-  document.getElementById("cfTimerMode").value = b.timerMode || "daily";
-  document.getElementById("cfTimerEnd").value = b.timerEnd || "";
-  document.getElementById("cfEndedMsg").checked = b.endedMsg !== false;
-  toggleTimerModeUI();
-}
-function toggleTimerModeUI(){
-  const mode = document.getElementById("cfTimerMode").value;
-  document.getElementById("cfCustomWrap").style.display = mode === "custom" ? "block" : "none";
-}
-function saveTimerCfg(withMsg){
-  const b = getBanner();
-  b.timer = document.getElementById("cfTimerShow").checked;
-  b.timerMode = document.getElementById("cfTimerMode").value;
-  b.timerEnd = document.getElementById("cfTimerEnd").value;
-  b.endedMsg = document.getElementById("cfEndedMsg").checked;
-  if(b.timerMode === "custom" && (!b.timerEnd || isNaN(new Date(b.timerEnd).getTime()))){
-    return setErr("tmMsg", "❌ اختر تاريخ ووقت انتهاء صحيحين للوضع المخصص");
-  }
-  setBanner(b);
-  renderBanner(); updateTimer();
-  if(withMsg) setOk("tmMsg", "✅ تم حفظ إعدادات المؤقت");
-}
-
 /* ═══════════ المصادقة ═══════════ */
 function authMode(mode){
   document.getElementById("tabLogin").classList.toggle("on", mode === "login");
@@ -985,6 +958,9 @@ async function doRegister(){
   const user = { name: name, phone: phone, pass: await hash(p1), ref: ref, joined: Date.now() };
   users.push(user);
   store.users = users;
+
+  /* انتظر حفظ البيانات في السحابة فعليًا قبل إكمال التسجيل */
+  await syncToCloud();
   btn.disabled = false; btn.innerHTML = "إنشاء الحساب ✨";
 
   notifyAdmin("👤 <b>تسجيل مستخدم جديد</b>\n\n📛 الاسم: <b>" + esc(name) + "</b>\n📱 " + esc(phone) + (ref ? "\n🎟️ دعوة: " + esc(ref) : ""));
@@ -999,6 +975,10 @@ async function doLogin(){
 
   const btn = document.getElementById("lgBtn");
   btn.disabled = true; btn.innerHTML = '<span class="spin"></span>جارٍ التحقق...';
+
+  /* اجلب أحدث نسخة من المستخدمين قبل التحقق */
+  await syncFromCloud();
+
   const users = store.users;
   const user = users.find(function(u){ return u.phone === phone; });
   const ok = !!user && user.pass === await hash(pass);
@@ -1312,7 +1292,9 @@ async function submitOrder(){
     .concat(store.orders).slice(0, 300);
   store.cart = [];
 
-  await notifyAdmin(
+  await syncToCloud();
+
+  notifyAdmin(
     "🎮 <b>طلب شدات جديد #" + id + " — مدفوع من الرصيد</b>\n\n" +
     "👤 " + esc(s.name) + " — " + esc(s.phone) + "\n" +
     "📦 <b>" + esc(payCtx.items) + "</b>\n" +
@@ -1387,7 +1369,7 @@ async function handleCommand(cmd, chat){
   const arg = parts.slice(1).join(" ");
 
   if(c === "/start") return sendTG(chat, "👋 أهلًا بالمدير!\nأرسل /help لعرض الأوامر");
-  if(c === "/help")  return sendTG(chat, "🤖 <b>الأوامر:</b>\n/addproduct اسم|سعر|قبل|إيموجي\n/delproduct رقم\n/approve رقم\n/reject رقم\n/addbalance رقم_الهاتف المبلغ\n/setbanner نص_صغير|كبير|نص_المؤقت\n/settimer daily\n/settimer custom YYYY-MM-DDTHH:MM\n/setwallet عنوان\n/orders\n/products\n/stats");
+  if(c === "/help")  return sendTG(chat, "🤖 <b>الأوامر:</b>\n/addproduct اسم|سعر|قبل|إيموجي\n/delproduct رقم\n/approve رقم\n/reject رقم\n/addbalance رقم_الهاتف المبلغ\n/setwallet عنوان\n/orders\n/products\n/stats");
 
   if(c === "/stats"){
     const orders = store.orders;
@@ -1445,6 +1427,11 @@ async function handleCommand(cmd, chat){
     const ok = processOrderDecision(id, "rejected");
     return sendTG(chat, ok ? "❌ تم رفض الطلب #" + id : "❌ لم يتم العثور على الطلب #" + id);
   }
+  if(c === "/setwallet"){
+    if(!arg) return sendTG(chat, "❌ الصيغة: /setwallet عنوان_المحفظة");
+    const cfg = store.cfg; cfg.wallet = arg; store.cfg = cfg;
+    return sendTG(chat, "✅ تم تحديث المحفظة");
+  }
 }
 
 /* ═══════════ إداريات وقبول/رفض الطلبات ═══════════ */
@@ -1458,7 +1445,7 @@ function processOrderDecision(id, status){
   if(o.type === "topup"){
     if(status === "approved"){
       addBalanceTo(o.phone, o.amount, "شحن رصيد مقبول #" + o.id);
-      pushNotif(o.phone, "✅ تمت أتمتة قبول طلب شحن الرصيد #" + o.id + " بمبلغ " + money(o.amount) + " USDT", "ok");
+      pushNotif(o.phone, "✅ تم قبول طلب شحن الرصيد #" + o.id + " بمبلغ " + money(o.amount) + " USDT", "ok");
     } else {
       pushNotif(o.phone, "❌ تم رفض طلب شحن الرصيد #" + o.id, "err");
     }
@@ -1513,9 +1500,21 @@ function addPromo(){
   setOk("prMsg", "✅ أُضيف العرض");
 }
 
+/* قائمة الباقات في اختيار العرض */
+function fillProductSelect(){
+  const sel = document.getElementById("prProduct");
+  if(!sel) return;
+  sel.innerHTML = store.products.map(function(p){
+    return '<option value="' + p.id + '">' + esc(p.name) + '</option>';
+  }).join("");
+}
+
 function openAdmin(){
   document.body.classList.add("admin");
-  fillBannerCfg(); fillTimerCfg();
+  document.getElementById("adminGate").style.display = "block";
+  document.getElementById("adminBody").style.display = "none";
+  document.getElementById("adminPass").value = "";
+  fillBannerCfg();
 }
 function closeAdmin(){ document.body.classList.remove("admin"); }
 function adminLogin(){
@@ -1523,6 +1522,7 @@ function adminLogin(){
   if(p === ADMIN_PASS){
     document.getElementById("adminGate").style.display = "none";
     document.getElementById("adminBody").style.display = "block";
+    fillProductSelect();
     renderAdminTables();
   } else setErr("gateMsg", "❌ كلمة السر غير صحيحة");
 }
@@ -1546,9 +1546,52 @@ function renderAdminTables(){
     users.map(function(u){
       return '<tr class="urow" onclick="openUserModal(\'' + u.phone + '\')"><td>' + esc(u.name) + '</td><td>' + esc(u.phone) + '</td><td>' + money(getBalance(u.phone)) + ' USDT</td></tr>';
     }).join("");
+
+  /* طلبات الشحن المعلقة */
+  const tops = orders.filter(function(o){ return o.type === "topup" && o.status === "pending"; });
+  document.getElementById("topupList").innerHTML = tops.map(function(o){
+    return '<div class="deal" style="margin:0 0 9px"><div class="inf"><b>#' + o.id + ' — ' + esc(o.customer) + '</b>' +
+      '<span style="font-size:11px;color:var(--mut)">' + esc(o.phone) + '</span></div>' +
+      '<div class="p">' + money(o.amount) + '</div>' +
+      '<div style="display:flex;gap:6px"><button class="mini ok" onclick="decideTopupById(' + o.id + ',\'approved\')">قبول</button>' +
+      '<button class="mini no" onclick="decideTopupById(' + o.id + ',\'rejected\')">رفض</button></div></div>';
+  }).join("") || '<div class="empty" style="padding:16px 0">لا طلبات شحن معلّقة</div>';
+
+  fillProductSelect();
+}
+
+function openUserModal(phone){
+  const u = store.users.find(function(x){ return x.phone === phone; });
+  if(!u) return;
+  document.getElementById("umInfo").innerHTML =
+    '<div class="k">الاسم</div><div class="v">' + esc(u.name) + '</div>' +
+    '<div class="k">الهاتف</div><div class="v"><code>' + esc(u.phone) + '</code></div>' +
+    '<div class="k">الرصيد</div><div class="v">' + money(getBalance(phone)) + ' USDT</div>';
+  window._umPhone = phone;
+  document.getElementById("umAmount").value = "";
+  document.getElementById("umNote").value = "";
+  document.getElementById("umMsg").textContent = "";
+  document.getElementById("userModal").classList.add("show");
+}
+function adminAdjust(sign){
+  const amt = parseFloat(document.getElementById("umAmount").value);
+  const note = document.getElementById("umNote").value.trim() || (sign > 0 ? "إضافة من المدير" : "خصم من المدير");
+  if(!(amt > 0)) return setErr("umMsg", "❌ أدخل مبلغًا صحيحًا");
+  addBalanceTo(window._umPhone, sign * amt, note);
+  pushNotif(window._umPhone, (sign > 0 ? "➕ تم إضافة " : "➖ تم خصم ") + money(amt) + " USDT — " + note, sign > 0 ? "ok" : "err");
+  renderAdminTables(); refreshAll();
+  setOk("umMsg", "✅ تم تنفيذ العملية");
+}
+function decideTopupById(id, status){
+  processOrderDecision(id, status);
+  toast(status === "approved" ? "✅ تم قبول طلب الشحن" : "❌ تم رفض طلب الشحن", status === "approved" ? "gold" : "err");
+}
+function decideTopup(status){
+  closeAll();
 }
 
 function delProduct(id){
+  if(!confirm("حذف هذه الباقة؟")) return;
   store.products = store.products.filter(function(p){ return p.id !== id; });
   refreshAll(); renderAdminTables();
 }
@@ -1562,6 +1605,13 @@ function saveCfg(){
   };
   setOk("cfgMsg", "✅ تم حفظ الإعدادات");
 }
+function loadCfg(){
+  const c = store.cfg;
+  document.getElementById("cfgToken").value = c.token || "";
+  document.getElementById("cfgChat").value = c.chat || "";
+  document.getElementById("cfgWallet").value = c.wallet || "";
+  document.getElementById("cfgSupport").value = c.support || "";
+}
 
 function testTG(){
   notifyAdmin("🔔 <b>اختبار الاتصال بـ NOVA Store</b>\n\nتم ربط البوت بنجاح!").then(function(ok){
@@ -1572,7 +1622,7 @@ function testTG(){
 
 function wipeAll(){
   if(confirm("هل أنت متأكد من مسح كل البيانات كلياً؟")){
-    db = { products: DEFAULT_PRODUCTS, users: [], orders: [], promos: [], banner: DEFAULT_BANNER, cfg: {}, balances: {}, txs: {}, notifs: {}, reqSeq: 0 };
+    db = normalizeDb({ products: DEFAULT_PRODUCTS, users: [], orders: [], promos: [], banner: DEFAULT_BANNER, cfg: {}, balances: {}, txs: {}, notifs: {}, reqSeq: 0 });
     syncToCloud();
     location.reload();
   }
@@ -1586,15 +1636,19 @@ function refreshAll(){
   renderBalance();
   renderAccount();
   updateMailBadge();
+  fillProductSelect();
+  if(document.getElementById("adminBody").style.display === "block") renderAdminTables();
 }
 
-// تهيئة التطبيق ومزامنة السحابة عند البداية
+/* تهيئة التطبيق ومزامنة السحابة عند البداية */
 window.onload = async function(){
+  renderBanner(); updateTimer();
   await syncFromCloud();
   if(store.session){
     document.body.classList.add("logged");
     refreshAll();
   }
+  loadCfg();
 };
 </script>
 </body>
