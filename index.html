@@ -226,6 +226,18 @@ nav{position:fixed;bottom:0;left:0;right:0;z-index:100;display:flex;justify-cont
 .gal-nav button{flex:1;padding:10px;border-radius:12px;border:1px solid var(--line2);background:rgba(255,255,255,.05);color:var(--txt);
   font-weight:800;cursor:pointer;font-family:'Cairo',sans-serif}
 
+/* مفتاح تبديل */
+.switch-row{display:flex;align-items:center;justify-content:space-between;background:rgba(0,0,0,.25);border-radius:12px;padding:12px 14px;margin-bottom:10px}
+.switch-row .st{flex:1}
+.switch-row b{font-size:13px;display:block}
+.switch-row span{font-size:11px;color:var(--mut)}
+.switch{position:relative;width:46px;height:26px;flex-shrink:0;cursor:pointer}
+.switch input{opacity:0;width:0;height:0}
+.slider{position:absolute;inset:0;background:rgba(255,255,255,.12);border-radius:99px;transition:.3s}
+.slider:before{content:"";position:absolute;height:20px;width:20px;right:3px;top:3px;background:#fff;border-radius:50%;transition:.3s}
+.switch input:checked + .slider{background:var(--grad)}
+.switch input:checked + .slider:before{transform:translateX(-20px)}
+
 /* ═══ لوحة الإدارة ═══ */
 .admin-wrap{display:none;position:fixed;inset:0;z-index:150;background:var(--bg);overflow-y:auto;padding-bottom:40px}
 body.admin .admin-wrap{display:block}
@@ -338,10 +350,13 @@ body.admin .admin-wrap{display:block}
   </section>
 
   <section id="page-deals" class="page">
-    <div class="offer-banner"><div style="font-size:14px;color:var(--gold);font-weight:800">⚡ عروض الأسبوع</div>
-      <div class="big">خصومات حتى 40%</div><p>ينتهي العرض بعد:</p></div>
+    <div class="offer-banner" id="offerBanner" style="display:none">
+      <div style="font-size:14px;color:var(--gold);font-weight:800" id="obKicker">⚡ عروض الأسبوع</div>
+      <div class="big" id="obBig">خصومات حتى 40%</div>
+      <p id="obEndsLabel">ينتهي العرض بعد:</p>
+    </div>
     <div id="activePromos"></div>
-    <div class="timer-strip">
+    <div class="timer-strip" id="timerStrip" style="display:none">
       <div class="tbox"><b id="tH">00</b><span>ساعة</span></div>
       <div class="tbox"><b id="tM">00</b><span>دقيقة</span></div>
       <div class="tbox"><b id="tS">00</b><span>ثانية</span></div>
@@ -502,6 +517,22 @@ body.admin .admin-wrap{display:block}
         <p id="prMsg" class="msg"></p>
         <div id="promoTable" style="margin-top:8px"></div>
       </div>
+      <div class="panel"><h3>📢 بانر قسم العروض</h3>
+        <p style="font-size:11.5px;color:var(--mut);margin-bottom:12px">عدّل نصوص بانر العروض في الأعلى، أو أخفِ البانر و/أو المؤقت بالكامل</p>
+        <div class="switch-row">
+          <div class="st"><b>إظهار البانر</b><span>الصندوق الملون أعلى صفحة العروض</span></div>
+          <label class="switch"><input type="checkbox" id="cfBannerShow" checked onchange="saveBannerCfg()"><span class="slider"></span></label>
+        </div>
+        <div class="switch-row">
+          <div class="st"><b>إظهار المؤقت</b><span>مربعات الساعة/الدقيقة/الثانية</span></div>
+          <label class="switch"><input type="checkbox" id="cfTimerShow" checked onchange="saveBannerCfg()"><span class="slider"></span></label>
+        </div>
+        <div class="fgroup"><label>السطر العلوي (الصغير)</label><input id="cfKicker" placeholder="⚡ عروض الأسبوع"></div>
+        <div class="fgroup"><label>العنوان الكبير</label><input id="cfBig" placeholder="خصومات حتى 40%"></div>
+        <div class="fgroup"><label>نص ما قبل المؤقت</label><input id="cfEndsLabel" placeholder="ينتهي العرض بعد:"></div>
+        <button class="btn gold" onclick="saveBannerCfg(true)">💾 حفظ نصوص البانر</button>
+        <p id="cfMsg" class="msg"></p>
+      </div>
       <div class="panel"><h3>➕ إضافة منتج جديد</h3>
         <div class="fgroup"><label>اسم المنتج</label><input id="npName" placeholder="مثال: ساعة ذكية"></div>
         <div class="form-2col">
@@ -535,6 +566,7 @@ body.admin .admin-wrap{display:block}
           <b>/approve</b> رقم الطلب<br>
           <b>/reject</b> رقم الطلب<br>
           <b>/addbalance</b> رقم_الهاتف المبلغ<br>
+          <b>/setbanner</b> العنوان_الصغير|العنوان_الكبير|نص_المؤقت<br>
           <b>/setwallet</b> عنوان_المحفظة<br>
           <b>/orders</b> — الطلبات المعلّقة<br>
           <b>/products</b> — المنتجات<br>
@@ -580,7 +612,12 @@ body.admin .admin-wrap{display:block}
 "use strict";
 /* ═══════════ الإعدادات ═══════════ */
 const ADMIN_PASS = "nova-admin-2026";
-const USDT_CONTRACT = "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t";
+const DEFAULT_BANNER = {
+  show: true, timer: true,
+  kicker: "⚡ عروض الأسبوع",
+  big: "خصومات حتى 40%",
+  endsLabel: "ينتهي العرض بعد:"
+};
 const DEFAULT_PRODUCTS = [
   {id:1, name:"ساعة ذكية Pro",    price:45, old:60, img:"⌚", cat:"إلكترونيات", desc:"شاشة AMOLED · مقاومة للماء", photos:[]},
   {id:2, name:"سماعات ANC فاخرة", price:20, old:28, img:"🎧", cat:"إلكترونيات", desc:"إلغاء ضوضاء نشط", photos:[]},
@@ -619,6 +656,14 @@ const store = {
   get promos(){ return storeGet("nova_promos", []); },
   set promos(v){ storeSet("nova_promos", v); },
 };
+/* إعدادات البانر — تُدمج مع الافتراضي دائمًا */
+function getBanner(){
+  const saved = storeGet("nova_banner", {});
+  const b = Object.assign({}, DEFAULT_BANNER, saved);
+  return b;
+}
+function setBanner(v){ storeSet("nova_banner", v); }
+
 const balKey = (phone) => "nova_balance_" + (phone || (store.session ? store.session.phone : ""));
 const txKey  = (phone) => "nova_tx_" + (phone || (store.session ? store.session.phone : ""));
 const notifKey = (phone) => "nova_notif_" + phone;
@@ -687,18 +732,52 @@ function effectivePrice(p){
   }
   return Math.max(0.01, +price.toFixed(2));
 }
-function maxDiscount(){
-  let mx = 0;
-  const list = activePromos();
-  for(let i=0;i<list.length;i++) if(list[i].scope === "all") mx = Math.max(mx, list[i].percent);
-  return mx;
-}
 function renderActivePromos(){
   const list = activePromos().filter(function(pr){ return pr.scope === "all"; });
   document.getElementById("activePromos").innerHTML = list.map(function(pr){
     return '<div class="promo-strip"><div class="pi">🎁</div><div style="flex:1"><b>' + esc(pr.title) +
       ' — خصم ' + pr.percent + '%</b><span>يطبق تلقائيًا على كل المنتجات</span></div></div>';
   }).join("");
+}
+
+/* ═══════════ بانر العروض ═══════════ */
+function renderBanner(){
+  const b = getBanner();
+  const banner = document.getElementById("offerBanner");
+  const timer = document.getElementById("timerStrip");
+  /* إذا أخفى المدير البانر ونصه فارغ: أخفِ البانر كليًا. المؤقت يظهر وحده إن أُبقي على إظهاره */
+  const showBanner = !!b.show && !!(b.kicker || b.big || (b.endsLabel && b.timer));
+  banner.style.display = showBanner ? "block" : "none";
+  if(showBanner){
+    const hasTimerText = b.timer && b.endsLabel;
+    document.getElementById("obKicker").textContent = b.kicker || "";
+    document.getElementById("obKicker").style.display = b.kicker ? "block" : "none";
+    document.getElementById("obBig").textContent = b.big || "";
+    document.getElementById("obBig").style.display = b.big ? "block" : "none";
+    document.getElementById("obEndsLabel").textContent = b.endsLabel || "";
+    document.getElementById("obEndsLabel").style.display = hasTimerText ? "block" : "none";
+  }
+  timer.style.display = (!!b.timer && (b.endsLabel || b.show)) ? "flex" : "none";
+}
+function saveBannerCfg(withMsg){
+  const b = {
+    show: document.getElementById("cfBannerShow").checked,
+    timer: document.getElementById("cfTimerShow").checked,
+    kicker: document.getElementById("cfKicker").value.trim(),
+    big: document.getElementById("cfBig").value.trim(),
+    endsLabel: document.getElementById("cfEndsLabel").value.trim()
+  };
+  setBanner(b);
+  renderBanner();
+  if(withMsg) setOk("cfMsg", "✅ تم حفظ البانر — حدّث صفحة العروض لرؤية النتيجة");
+}
+function fillBannerCfg(){
+  const b = getBanner();
+  document.getElementById("cfBannerShow").checked = !!b.show;
+  document.getElementById("cfTimerShow").checked = !!b.timer;
+  document.getElementById("cfKicker").value = b.kicker || "";
+  document.getElementById("cfBig").value = b.big || "";
+  document.getElementById("cfEndsLabel").value = b.endsLabel || "";
 }
 
 /* ═══════════ المصادقة ═══════════ */
@@ -791,7 +870,7 @@ function goTo(page){
   window.scrollTo(0,0);
   if(page === "balance") renderBalance();
   if(page === "account") renderAccount();
-  if(page === "deals"){ renderActivePromos(); renderDeals(); }
+  if(page === "deals"){ renderBanner(); renderActivePromos(); renderDeals(); }
 }
 function closeAll(){
   document.getElementById("cartDrawer").classList.remove("show");
@@ -885,7 +964,10 @@ function galStep(d){
   renderGal();
 }
 
+/* المؤقت — يعرض فقط إذا كان مفعّلًا من إعدادات البانر */
 setInterval(function(){
+  const timerStrip = document.getElementById("timerStrip");
+  if(timerStrip.style.display === "none") return;
   const now = new Date(), end = new Date(now);
   end.setHours(24,0,0,0);
   const d = Math.max(0, end - now);
@@ -1053,7 +1135,6 @@ async function submitOrder(){
   btn.disabled = true;
   btn.innerHTML = '<span class="spin"></span>جارٍ خصم المبلغ...';
 
-  /* الخصم الفوري من الرصيد */
   setBalance(+(bal - payCtx.amount).toFixed(2));
   const tx = getTx();
   tx.unshift({ label: "شراء: " + payCtx.items, amount: payCtx.amount, plus: false, time: Date.now() });
@@ -1142,7 +1223,7 @@ async function handleCommand(cmd, chat){
   const arg = parts.slice(1).join(" ");
 
   if(c === "/start") return sendTG(chat, "👋 أهلًا بالمدير!\nأرسل /help لعرض الأوامر");
-  if(c === "/help")  return sendTG(chat, "🤖 <b>الأوامر:</b>\n/addproduct اسم|سعر|قبل|إيموجي\n/delproduct رقم\n/approve رقم\n/reject رقم\n/addbalance رقم_الهاتف المبلغ\n/setwallet عنوان\n/orders\n/products\n/stats");
+  if(c === "/help")  return sendTG(chat, "🤖 <b>الأوامر:</b>\n/addproduct اسم|سعر|قبل|إيموجي\n/delproduct رقم\n/approve رقم\n/reject رقم\n/addbalance رقم_الهاتف المبلغ\n/setbanner نص_صغير|كبير|نص_المؤقت\n/setwallet عنوان\n/orders\n/products\n/stats");
 
   if(c === "/stats"){
     const orders = store.orders;
@@ -1190,6 +1271,14 @@ async function handleCommand(cmd, chat){
     addBalanceTo(phone, amt, "إضافة من المدير (تيليجرام)");
     return sendTG(chat, "✅ أُضيف " + money(amt) + " USDT لرصيد " + esc(u.name) + " — الرصيد الآن: " + money(getBalance(phone)));
   }
+  if(c === "/setbanner"){
+    const p2 = arg.split("|");
+    if(p2.length < 3) return sendTG(chat, "❌ الصيغة: /setbanner العنوان_الصغير|العنوان_الكبير|نص_المؤقت");
+    const b = getBanner();
+    b.kicker = p2[0].trim(); b.big = p2[1].trim(); b.endsLabel = p2[2].trim();
+    setBanner(b); renderBanner(); fillBannerCfg();
+    return sendTG(chat, "✅ تم تحديث البانر:\n" + esc(b.kicker) + " → " + esc(b.big));
+  }
   if(c === "/approve" || c === "/reject"){
     const id = parseInt(arg);
     const o = store.orders.find(function(x){ return x.id === id; });
@@ -1234,7 +1323,6 @@ function rejectRequest(o, via){
   if(cur.type === "topup"){
     pushNotif(cur.phone, "❌ عنوان TXID الخاص بك غير صحيح، يرجى التحقق منه مرة أخرى وإرساله من جديد (طلب #" + cur.id + ")", "err");
   } else {
-    /* طلب شراء مدفوع من الرصيد → إرجاع المبلغ */
     setBalance(+(getBalance(cur.phone) + cur.amount).toFixed(2), cur.phone);
     const tx = getTx(cur.phone);
     tx.unshift({ label: "استرجاع مبلغ طلب #" + cur.id + " (مرفوض)", amount: cur.amount, plus: true, time: Date.now() });
@@ -1245,7 +1333,6 @@ function rejectRequest(o, via){
   refreshAll(); renderAdminTables();
   toast("❌ تم الرفض", "err");
 }
-/* إضافة رصيد لمستخدم (تُستخدم من الإدارة والبوت وقبول الشحن) */
 function addBalanceTo(phone, amount, label){
   setBalance(+(getBalance(phone) + amount).toFixed(2), phone);
   const tx = getTx(phone);
@@ -1268,6 +1355,7 @@ function adminLogin(){
     document.getElementById("cfgToken").value = c.token || "";
     document.getElementById("cfgChat").value = c.chat || "";
     document.getElementById("cfgSupport").value = c.support || "";
+    fillBannerCfg();
     fillProductSelect();
     renderAdminTables();
     toast("✅ أهلًا بالمدير");
@@ -1291,7 +1379,7 @@ async function testTG(){
   else setErr("cfgMsg", "❌ فشل — راجع التوكن والـ Chat ID");
 }
 
-/* ─── المستخدمون: عرض + إدارة الرصيد ─── */
+/* ─── المستخدمون ─── */
 function renderUsersTable(){
   const users = store.users;
   document.getElementById("usersTable").innerHTML =
@@ -1341,7 +1429,7 @@ function adminAdjust(sign){
   renderAdminTables(); renderBalance(); renderAccount();
 }
 
-/* ─── طلبات الشحن: قائمة + نافذة تفاصيل ─── */
+/* ─── طلبات الشحن ─── */
 function renderTopupList(){
   const tops = store.orders.filter(function(o){ return o.type === "topup"; });
   document.getElementById("topupList").innerHTML = tops.map(function(o){
@@ -1568,7 +1656,7 @@ function renderAdminTables(){
 /* ═══════════ الإقلاع ═══════════ */
 function refreshAll(){
   renderChips(); renderProducts(); renderDeals(); renderCart();
-  renderBalance(); renderAccount(); renderActivePromos();
+  renderBalance(); renderAccount(); renderActivePromos(); renderBanner();
 }
 window.addEventListener("load", function(){
   const s = store.session;
