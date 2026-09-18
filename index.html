@@ -668,7 +668,7 @@ function submitTopUp(){
   const id = nextReqId();
   store.orders = [{id, type:"topup", amount, txid, customer:s.name, phone:s.phone, status:"pending", time:Date.now()}, ...store.orders].slice(0,300);
   notifyAdmin(`💰 <b>طلب شحن رصيد #${id}</b>\n\n👤 ${esc(s.name)}\n📱 ${esc(s.phone)}\n💵 المبلغ: <b>${money(amount)} USDT</b>\n🔗 TXID: <code>${esc(txid)}</code>\n\nللموافقة: <b>/approve ${id}</b>`);
-  err→0; m.className="msg ok"; m.textContent="✅ أُرسل طلب الشحن للمدير — قيد المراجعة";
+  m.className="msg ok"; m.textContent="✅ أُرسل طلب الشحن للمدير — قيد المراجعة";
   setTimeout(closeAll, 1800);
 }
 
@@ -716,7 +716,11 @@ function checkout(){
   closeAll(); document.getElementById("payModal").classList.add("show");
 }
 function copyAddr(){ navigator.clipboard.writeText(store.cfg.wallet||""); toast("📋 نُسخ العنوان"); }
-function nextReqId(){ return (store.get("nova_reqSeq",0))+1 && (localStorage.setItem("nova_reqSeq", JSON.stringify((store.get("nova_reqSeq",0))+1)), store.get("nova_reqSeq",1)); }
+function nextReqId(){
+  const n = (store.get("nova_reqSeq", 0)) + 1;
+  localStorage.setItem("nova_reqSeq", JSON.stringify(n));
+  return n;
+}
 
 async function submitOrder(){
   const m=document.getElementById("payMsg"), btn=document.getElementById("verifyBtn");
