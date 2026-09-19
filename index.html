@@ -61,7 +61,7 @@ body{background:var(--bg);color:var(--txt);min-height:100vh;overflow-x:hidden}
 /* ═══ تسجيل الدخول / حساب جديد ═══ */
 .auth-wrap{position:fixed;inset:0;z-index:500;display:flex;align-items:flex-start;justify-content:center;padding:18px;
   overflow-y:auto;background:radial-gradient(700px 400px at 50% 0%,rgba(0,229,176,.06),transparent),var(--bg)}
-..auth-card{width:100%;max-width:410px;max-height:94vh;overflow-y:auto;background:var(--card);border:1px solid var(--line2);
+.auth-card{width:100%;max-width:410px;max-height:94vh;overflow-y:auto;background:var(--card);border:1px solid var(--line2);
   border-radius:26px;padding:26px 22px;margin:auto;backdrop-filter:blur(20px);box-shadow:var(--shadow);
   animation:authIn .6s var(--ease);-webkit-overflow-scrolling:touch;scrollbar-width:none}
 .auth-card:before{content:"";position:absolute;top:0;left:-60%;width:60%;height:100%;pointer-events:none;
@@ -1175,7 +1175,8 @@ async function doRegister(){
     return setErr("rgMsg", "❌ هذا الرقم مسجّل مسبقًا — سجّل دخولك");
   }
 
-  const user = { name: name, phone: phone, pass: await hash(p1), ref: ref, joined: Date.now() };
+  // 🟢 تم إزالة المتغير المسبب للمشكلة (ref)
+  const user = { name: name, phone: phone, pass: await hash(p1), joined: Date.now() };
   users.push(user);
   store.users = users;
 
@@ -1187,6 +1188,7 @@ async function doRegister(){
   startSession(user);
   toast("✅ تم إنشاء حسابك — أهلًا بك!");
 }
+
 
 async function doLogin(){
   const phone = document.getElementById("lgCC").value + document.getElementById("lgPhone").value.trim();
