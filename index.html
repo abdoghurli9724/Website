@@ -1700,6 +1700,47 @@ function addPromo(){
   setOk("prMsg", "✅ أُضيف العرض");
 }
 
+/* ═══════════ عرض وإدارة العروض ═══════════ */
+function renderPromoTable(){
+  const box = document.getElementById("promoTable");
+  if(!box) return;
+  const promos = store.promos;
+  const scopeL = { all: "كل الباقات", product: "باقة محددة" };
+  box.innerHTML =
+    (promos.length ? '<div style="font-size:13px;font-weight:800;margin:10px 0 8px">🏷️ العروض الحالية (' + promos.length + ')</div>' : '') +
+    (promos.map(function(pr){
+      const prod = store.products.find(function(p){ return p.id === +pr.productId; });
+      const target = pr.scope === "product" && prod ? esc(prod.name) : "كل الباقات";
+      return '<div class="deal" style="margin:0 0 9px"><div class="inf">' +
+        '<b>' + esc(pr.title) + ' — ' + pr.percent + '%</b>' +
+        '<span style="font-size:11px;color:var(--mut);display:block">' + target + '</span>' +
+        '<span class="badge ' + (pr.active ? "b-ok" : "b-no") + '">' + (pr.active ? "مفعّل" : "موقوف") + '</span>' +
+        '</div>' +
+        '<div style="display:flex;gap:6px;flex-direction:column">' +
+        '<button class="mini gold" onclick="togglePromo(' + pr.id + ')">' + (pr.active ? "إيقاف" : "تفعيل") + '</button>' +
+        '<button class="mini no" onclick="deletePromo(' + pr.id + ')">حذف</button>' +
+        '</div></div>';
+    }).join("") || '<div class="empty" style="padding:16px 0">لا عروض حاليًا</div>');
+}
+
+function deletePromo(id){
+  if(!can("promos")) return toast("❌ لا تملك صلاحية العروض", "err");
+  if(!confirm("حذف هذا العرض؟")) return;
+  store.promos = store.promos.filter(function(p){ return p.id !== id; });
+  refreshAll(); renderAdminTables();
+  toast("🗑️ تم حذف العرض");
+}
+
+function togglePromo(id){
+  if(!can("promos")) return toast("❌ لا تملك صلاحية العروض", "err");
+  const pr = store.promos.find(function(p){ return p.id === id; });
+  if(!pr) return;
+  pr.active = !pr.active;
+  store.promos = store.promos; /* لتشغيل الحفظ السحابي */
+  refreshAll(); renderAdminTables();
+  toast(pr.active ? "✅ تم تفعيل العرض" : "⏸️ تم إيقاف العرض", "gold");
+}
+
 function fillProductSelect(){
   const sel = document.getElementById("prProduct");
   if(!sel) return;
@@ -2048,4 +2089,4 @@ window.onload = async function(){
 };
 </script>
 </body>
-</html>
+</html> 
