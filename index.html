@@ -1926,16 +1926,7 @@ function renderAdminTables(){
       '<div style="display:flex;gap:6px"><button class="mini ok" onclick="decideTopupById(' + o.id + ',\'approved\')">قبول</button>' +
       '<button class="mini no" onclick="decideTopupById(' + o.id + ',\'rejected\')">رفض</button></div></div>';
   }).join("") || '<div class="empty" style="padding:16px 0">لا طلبات شحن معلّقة</div>';
-  const tops = orders.filter(function(o){ return o.type === "topup" && o.status === "pending"; });
-  const tl = document.getElementById("topupList");
-  if(tl) tl.innerHTML = tops.map(function(o){
-    return '<div class="deal" style="margin:0 0 9px"><div class="inf"><b>#' + o.id + ' — ' + esc(o.customer) + '</b>' +
-      '<span style="font-size:11px;color:var(--mut)">' + esc(o.phone) + '</span></div>' +
-      '<div class="p">' + money(o.amount) + '</div>' +
-      '<div style="display:flex;gap:6px"><button class="mini ok" onclick="decideTopupById(' + o.id + ',\'approved\')">قبول</button>' +
-      '<button class="mini no" onclick="decideTopupById(' + o.id + ',\'rejected\')">رفض</button></div></div>';
-  }).join("") || '<div class="empty" style="padding:16px 0">لا طلبات شحن معلّقة</div>';
-
+  
   const wds = orders.filter(function(o){ return o.type === "withdraw" && o.status === "pending"; });
   const wl = document.getElementById("withdrawList");
   if(wl) wl.innerHTML = wds.map(function(o){
