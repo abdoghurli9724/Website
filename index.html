@@ -21,13 +21,12 @@
 *{box-sizing:border-box;margin:0;font-family:'Cairo',sans-serif;-webkit-tap-highlight-color:transparent}
 body{background:var(--bg);color:var(--txt);min-height:100vh;overflow-x:hidden}
 ::-webkit-scrollbar{width:0}a{color:var(--accent);text-decoration:none}
-#particles{position:fixed;inset:0;z-index:0;pointer-events:none;opacity:.5}
 .aurora{position:fixed;border-radius:50%;filter:blur(90px);z-index:0;pointer-events:none;animation:drift 18s ease-in-out infinite alternate}
 .aurora.a1{width:440px;height:440px;background:rgba(0,229,176,.09);top:-150px;inset-inline-end:-120px}
 .aurora.a2{width:400px;height:400px;background:rgba(0,163,255,.08);bottom:-140px;inset-inline-start:-120px;animation-delay:-9s}
 @keyframes drift{from{transform:scale(1)}to{transform:translate(-40px,50px) scale(1.15)}}
 
-/* ═══ تسجيل الدخول / حساب جديد / الإدارة ═══ */
+/* ═══ تسجيل الدخول / حساب جديد ═══ */
 .auth-wrap{position:fixed;inset:0;z-index:500;display:flex;align-items:center;justify-content:center;padding:18px;
   background:radial-gradient(700px 400px at 50% 0%,rgba(0,229,176,.06),transparent),var(--bg)}
 .auth-card{width:100%;max-width:410px;background:var(--card);border:1px solid var(--line2);border-radius:26px;padding:32px 26px;
@@ -40,9 +39,8 @@ body{background:var(--bg);color:var(--txt);min-height:100vh;overflow-x:hidden}
 .auth-logo h1 span{background:var(--grad-lux);-webkit-background-clip:text;background-clip:text;color:transparent}
 .auth-logo p{font-size:12.5px;color:var(--mut);margin-top:4px}
 .auth-tabs{display:flex;background:rgba(0,0,0,.3);border-radius:13px;padding:4px;margin-bottom:20px}
-.auth-tab{flex:1;padding:10px 4px;border:none;background:none;color:var(--mut);font-weight:800;font-size:12px;border-radius:10px;cursor:pointer;transition:.3s}
+.auth-tab{flex:1;padding:10px;border:none;background:none;color:var(--mut);font-weight:800;font-size:13.5px;border-radius:10px;cursor:pointer;transition:.3s}
 .auth-tab.on{background:var(--grad);color:#04211f}
-.auth-tab.gold.on{background:linear-gradient(135deg,var(--gold),#ff9d48)}
 .fgroup{margin-bottom:14px}
 .fgroup label{font-size:12.5px;color:var(--mut);display:block;margin-bottom:6px;font-weight:700}
 .fgroup input,.fgroup select,.fgroup textarea{width:100%;padding:13px 15px;border-radius:13px;border:1px solid var(--line);background:rgba(0,0,0,.3);
@@ -80,6 +78,9 @@ header{position:sticky;top:0;z-index:50;background:rgba(5,7,12,.72);backdrop-fil
 .logo .dot{width:37px;height:37px;border-radius:12px;background:var(--grad-lux);display:grid;place-items:center;font-size:16px;color:#fff}
 .logo .lg-span{background:var(--grad-lux);-webkit-background-clip:text;background-clip:text;color:transparent}
 .hdr-actions{display:flex;align-items:center;gap:8px}
+.admin-btn{background:var(--card);border:1px solid rgba(255,200,72,.4);border-radius:99px;width:40px;height:40px;
+  display:none;place-items:center;font-size:17px;cursor:pointer}
+.admin-btn.show{display:grid}
 .mail-btn{position:relative;background:var(--card);border:1px solid var(--line2);border-radius:99px;width:40px;height:40px;
   display:grid;place-items:center;font-size:17px;cursor:pointer;transition:.25s}
 .mail-btn:active{transform:scale(.92)}
@@ -87,9 +88,6 @@ header{position:sticky;top:0;z-index:50;background:rgba(5,7,12,.72);backdrop-fil
   font-size:10px;font-weight:900;min-width:19px;height:19px;border-radius:99px;display:grid;place-items:center;padding:0 4px;
   box-shadow:0 2px 8px rgba(255,77,106,.5);animation:pulse 2s infinite}
 @keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.15)}}
-.admin-btn{background:var(--card);border:1px solid rgba(255,200,72,.4);border-radius:99px;width:40px;height:40px;
-  display:none;place-items:center;font-size:17px;cursor:pointer}
-.admin-btn.show{display:grid}
 .balance-pill{background:var(--card);border:1px solid var(--line2);border-radius:99px;padding:10px 15px;font-size:12.5px;color:var(--mut);
   font-weight:700;cursor:pointer}
 .balance-pill b{color:var(--accent)}
@@ -234,7 +232,6 @@ nav{position:fixed;bottom:0;left:0;right:0;z-index:100;display:flex;justify-cont
 .toast.gold{border-inline-start-color:var(--gold)}
 @keyframes tin{from{opacity:0;transform:translateY(-14px)}}
 
-/* معرض الصور */
 .gallery-modal{z-index:400}
 .gal-main{width:100%;height:260px;border-radius:16px;overflow:hidden;display:grid;place-items:center;background:rgba(0,0,0,.35);font-size:60px}
 .gal-main img{width:100%;height:100%;object-fit:contain}
@@ -245,7 +242,6 @@ nav{position:fixed;bottom:0;left:0;right:0;z-index:100;display:flex;justify-cont
 .gal-nav button{flex:1;padding:10px;border-radius:12px;border:1px solid var(--line2);background:rgba(255,255,255,.05);color:var(--txt);
   font-weight:800;cursor:pointer;font-family:'Cairo',sans-serif}
 
-/* مفتاح تبديل */
 .switch-row{display:flex;align-items:center;justify-content:space-between;background:rgba(0,0,0,.25);border-radius:12px;padding:12px 14px;margin-bottom:10px}
 .switch-row .st{flex:1}
 .switch-row b{font-size:13px;display:block}
@@ -257,7 +253,6 @@ nav{position:fixed;bottom:0;left:0;right:0;z-index:100;display:flex;justify-cont
 .switch input:checked + .slider{background:var(--grad)}
 .switch input:checked + .slider:before{transform:translateX(-20px)}
 
-/* شبكة الصلاحيات */
 .perm-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:10px 0}
 .perm-item{display:flex;align-items:center;gap:8px;background:rgba(0,0,0,.25);border-radius:11px;padding:10px 12px;cursor:pointer}
 .perm-item input{width:17px;height:17px;accent-color:#00e5b0;cursor:pointer;flex-shrink:0}
@@ -295,19 +290,16 @@ body.admin .admin-wrap{display:block}
 .info-grid .k{color:var(--mut);font-weight:700}
 .info-grid .v{word-break:break-all}
 .info-grid .v code{direction:ltr;display:inline-block;font-size:11px;color:var(--accent2)}
-.uav{width:44px;height:44px;border-radius:14px;background:var(--grad-lux);display:inline-grid;place-items:center;font-size:20px;color:#fff;
-  margin-inline-end:8px;vertical-align:middle}
 input[type="datetime-local"]{direction:ltr;text-align:left}
 .role-tag{font-size:10px;font-weight:900;padding:3px 9px;border-radius:99px;margin-inline-start:6px}
 </style>
 </head>
 <body>
 
-<canvas id="particles"></canvas>
 <div class="aurora a1"></div><div class="aurora a2"></div>
 <div id="toasts"></div>
 
-<!-- ═══════════ الدخول / التسجيل / الإدارة ═══════════ -->
+<!-- ═══════════ الدخول / التسجيل ═══════════ -->
 <div class="auth-wrap" id="authWrap">
   <div class="auth-card">
     <div class="auth-logo">
@@ -318,7 +310,6 @@ input[type="datetime-local"]{direction:ltr;text-align:left}
     <div class="auth-tabs">
       <button class="auth-tab on" id="tabLogin" onclick="authMode('login')">تسجيل الدخول</button>
       <button class="auth-tab" id="tabReg" onclick="authMode('register')">حساب جديد</button>
-      <button class="auth-tab gold" id="tabAdmin" onclick="authMode('admin')">⚙️ الإدارة</button>
     </div>
 
     <div id="loginForm">
@@ -332,7 +323,7 @@ input[type="datetime-local"]{direction:ltr;text-align:left}
           <input id="lgPhone" type="tel" placeholder="5xxxxxxxx" maxlength="12">
         </div>
       </div>
-      <div class="fgroup"><label>كلمة السر</label><input id="lgPass" type="password" placeholder="••••••••"></div>
+      <div class="fgroup"><label>كلمة السر</label><input id="lgPass" type="password" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()"></div>
       <button class="btn" id="lgBtn" onclick="doLogin()">دخول إلى المتجر ←</button>
       <p id="lgMsg" class="msg"></p>
     </div>
@@ -354,13 +345,6 @@ input[type="datetime-local"]{direction:ltr;text-align:left}
       <div class="fgroup"><label>كود الدعوة (اختياري)</label><input id="rgRef" placeholder="A1B2C3" style="direction:ltr;text-align:left"></div>
       <button class="btn" id="rgBtn" onclick="doRegister()">إنشاء الحساب ✨</button>
       <p id="rgMsg" class="msg"></p>
-    </div>
-
-    <div id="adminForm" style="display:none">
-      <div class="fgroup"><label>اسم المدير</label><input id="adName" placeholder="owner" style="direction:ltr;text-align:left" autocomplete="off"></div>
-      <div class="fgroup"><label>كلمة سر الإدارة</label><input id="adPass" type="password" placeholder="••••••••" onkeydown="if(event.key==='Enter')doAdminLogin()"></div>
-      <button class="btn gold" id="adBtn" onclick="doAdminLogin()">🔐 دخول لوحة الإدارة</button>
-      <p id="adMsg" class="msg"></p>
     </div>
 
     <p class="auth-note">☁️ البيانات متزامنة ومحفوظة بأمان عبر قواعد بيانات JSONBin السحابية.</p>
@@ -479,7 +463,7 @@ input[type="datetime-local"]{direction:ltr;text-align:left}
   <div class="step"><div class="n">2</div><p>المبلغ المطلوب خصمه من رصيدك</p></div>
   <div class="amt"><span id="payAmount"></span> <span style="font-size:15px">USDT</span></div>
   <div style="text-align:center;font-size:13px;margin-bottom:14px">رصيدك بعد الشراء: <b id="payAfter" style="color:var(--accent)"></b> USDT</div>
-  <div class="fgroup"><label>معرف اللاعب (Player ID) — اختياري للباقات المحددة</label><input id="custNote" placeholder="مثال: 5123456789" style="direction:ltr;text-align:left"></div>
+  <div class="fgroup"><label>معرف اللاعب (Player ID) — اختياري</label><input id="custNote" placeholder="مثال: 5123456789" style="direction:ltr;text-align:left"></div>
   <button class="btn" id="verifyBtn" onclick="submitOrder()">✅ تأكيد الشراء والخصم</button>
   <button class="btn gray" onclick="closeAll()">إلغاء</button>
   <p id="payMsg" class="msg"></p>
@@ -502,7 +486,7 @@ input[type="datetime-local"]{direction:ltr;text-align:left}
 <div class="modal" id="withdrawModal"><div class="sheet">
   <div class="handle"></div>
   <div class="sheet-head"><h3>💸 طلب استرجاع رصيد</h3><button class="sheet-x" onclick="closeAll()">✕</button></div>
-  <p style="font-size:12.5px;color:var(--mut);margin-bottom:12px">أدخل المبلغ وعنوان محفظتك (TRC20) — يُخصم المبلغ من رصيدك بعد موافقة المدير ويُحوّل لمحفظتك</p>
+  <p style="font-size:12.5px;color:var(--mut);margin-bottom:12px">أدخل المبلغ وعنوان محفظتك (TRC20) — يُخصم المبلغ من رصيدك بعد موافقة المدير</p>
   <div style="text-align:center;font-size:13px;margin-bottom:12px">رصيدك المتاح: <b id="wdAvail" style="color:var(--accent)">0.00</b> USDT</div>
   <div class="fgroup"><label>المبلغ المطلوب استرجاعه (USDT)</label><input id="wdAmount" type="number" min="1" step="0.01" placeholder="50"></div>
   <div class="fgroup"><label>عنوان المحفظة (TRC20)</label><input id="wdWallet" placeholder="Txxxxxxxxxxxxxxxxxxxxx" style="direction:ltr;text-align:left"></div>
@@ -548,27 +532,20 @@ input[type="datetime-local"]{direction:ltr;text-align:left}
     <button onclick="closeAdmin()" style="background:var(--card);border:1px solid var(--line2);color:var(--txt);border-radius:12px;padding:9px 15px;cursor:pointer;font-size:12px;font-weight:700">✕ إغلاق</button>
   </div></header>
   <div class="awrap">
-    <div id="adminGate" class="panel" style="margin-top:40px;display:none">
-      <h3>🔐 دخول المدير</h3>
-      <div class="fgroup"><label>كلمة السر</label><input type="password" id="adminPass" placeholder="••••••••" onkeydown="if(event.key==='Enter')adminLogin()"></div>
-      <button class="btn" onclick="adminLogin()">دخول</button>
-      <p id="gateMsg" class="msg"></p>
-    </div>
-    <div id="adminBody" style="display:none">
+    <div id="adminBody">
       <div class="stat-grid" id="adminStats"></div>
 
-      <!-- المدراء — المالك فقط -->
       <div class="panel" id="pnAdmins"><h3>👑 إدارة المدراء (المالك فقط)</h3>
-        <p style="font-size:11.5px;color:var(--mut);margin-bottom:10px">أضف مدراءً من المستخدمين المسجلين أو برقم يدوي، وتحكم بصلاحيات كل مدير. يوجد مالك واحد فقط لا يمكن حذفه.</p>
+        <p style="font-size:11.5px;color:var(--mut);margin-bottom:10px">اختر مستخدمًا مسجلًا (أو أدخل رقمًا يدويًا) + كلمة سر الإدارة الخاصة به. يدخل المدير من نموذج تسجيل الدخول العادي برقمه وكلمة سر الإدارة.</p>
         <div class="fgroup"><label>اختر مستخدمًا مسجلًا (اختياري)</label>
           <select id="amUser" onchange="document.getElementById('amPhone').value=this.value;document.getElementById('amName').value=this.options[this.selectedIndex].dataset.name||''">
             <option value="">— إدخال يدوي —</option>
           </select></div>
         <div class="form-2col">
           <div class="fgroup"><label>اسم المدير</label><input id="amName" placeholder="أحمد"></div>
-          <div class="fgroup"><label>رقم الهاتف (اختياري)</label><input id="amPhone" placeholder="+9665xxxxxxx" style="direction:ltr;text-align:left"></div>
+          <div class="fgroup"><label>رقم الهاتف (يستخدمه للدخول)</label><input id="amPhone" placeholder="+9665xxxxxxx" style="direction:ltr;text-align:left"></div>
         </div>
-        <div class="fgroup"><label>كلمة سر الإدارة الخاصة به</label><input id="amPass" type="password" placeholder="6 خانات على الأقل"></div>
+        <div class="fgroup"><label>كلمة سر الإدارة الخاصة به (6 خانات على الأقل)</label><input id="amPass" type="password" placeholder="••••••••"></div>
         <label style="font-size:12.5px;color:var(--mut);font-weight:700;display:block;margin:4px 0 2px">الصلاحيات</label>
         <div class="perm-grid" id="amPerms"></div>
         <button class="btn gold" onclick="addAdminAccount()">👑 إضافة المدير</button>
@@ -607,7 +584,6 @@ input[type="datetime-local"]{direction:ltr;text-align:left}
 
       <div class="panel" id="pnOrders"><h3>📨 طلبات الشراء بانتظار المراجعة</h3><table class="tbl" id="pendingTable"></table></div>
       <div class="panel" id="pnTopups"><h3>💰 طلبات شحن الرصيد</h3>
-        <p style="font-size:11.5px;color:var(--mut);margin-bottom:10px">اضغط على أي طلب لعرض تفاصيله الكاملة والقبول أو الرفض</p>
         <div id="topupList"></div></div>
       <div class="panel" id="pnWithdraws"><h3>💸 طلبات الاسترجاع</h3>
         <p style="font-size:11.5px;color:var(--mut);margin-bottom:10px">عند القبول يُخصم المبلغ من رصيد المستخدم ويُحوّل لعنوان محفظته</p>
@@ -641,7 +617,7 @@ input[type="datetime-local"]{direction:ltr;text-align:left}
           <div class="fgroup"><label>التصنيف</label><input id="npCat" placeholder="شدات UC"></div>
           <div class="fgroup"><label>إيموجي بديل</label><input id="npImg" placeholder="💰"></div>
         </div>
-        <div class="fgroup"><label>روابط الصور (رابط في كل سطر — صورة أو أكثر)</label>
+        <div class="fgroup"><label>روابط الصور (رابط في كل سطر)</label>
           <textarea id="npPhoto" rows="3" style="direction:ltr;text-align:left" placeholder="https://example.com/uc1.jpg&#10;https://example.com/uc2.jpg"></textarea></div>
         <div class="fgroup"><label>الوصف</label><input id="npDesc" placeholder="تسليم مباشر بالـ ID · خلال 5 دقائق"></div>
         <button class="btn" onclick="addProduct()">حفظ الباقة</button>
@@ -693,18 +669,6 @@ input[type="datetime-local"]{direction:ltr;text-align:left}
   <p id="umMsg" class="msg"></p>
 </div></div>
 
-<!-- نافذة طلب الشحن -->
-<div class="modal" id="topupModal"><div class="sheet">
-  <div class="handle"></div>
-  <div class="sheet-head"><h3>💰 تفاصيل طلب الشحن <span id="tmId" style="color:var(--gold)">#—</span></h3><button class="sheet-x" onclick="closeAll()">✕</button></div>
-  <div class="info-grid" id="tmInfo"></div>
-  <div class="row-flex">
-    <button class="btn" onclick="decideTopup('approved')">✅ قبول وإضافة الرصيد</button>
-    <button class="btn red" onclick="decideTopup('rejected')">❌ رفض الطلب</button>
-  </div>
-  <button class="btn gray" style="margin-top:10px" onclick="closeAll()">إغلاق</button>
-</div></div>
-
 <script>
 "use strict";
 
@@ -713,9 +677,12 @@ const JSONBIN_BIN_ID  = "6aadaf66ffd5d16053177808";
 const JSONBIN_API_KEY = "$2a$10$ivwSTRMoM3LWu6xcGn1TuOwDAt1Od36P/ifB92r0AgPfmP6ZeuEyy";
 const JSONBIN_URL     = "https://api.jsonbin.io/v3/b/" + JSONBIN_BIN_ID;
 
-/* ═══════════ الإعدادات العامة ═══════════ */
-const ADMIN_PASS = "nova-admin-2026";
-const OWNER_NAME = "owner";
+/* ═══════════ ⚡ بيانات المالك السرية — غيّرها هنا ⚡ ═══════════
+   عند إدخال هذا الرقم وكلمة السر في نموذج تسجيل الدخول العادي
+   تُفتح لوحة الإدارة تلقائيًا بدور "المالك" */
+const ADMIN_PHONE = "+966500000000";      /* ← رقم المشرف السري */
+const ADMIN_PASS  = "nova-admin-2026";    /* ← كلمة سر المشرف السرية */
+
 const DEFAULT_BANNER = {
   show: true, timer: true,
   kicker: "⚡ عروض الأسبوع",
@@ -736,14 +703,14 @@ const DEFAULT_PRODUCTS = [
   {id:8, name:"تمرير شهري (RP+)",    price:9.5,  old:12,   img:"🎖️", cat:"تمرييرات",  desc:"تمرير شهري + مكافآت حصرية", photos:[]},
 ];
 
-/* الصلاحيات المتاحة للمدراء */
+/* الصلاحيات المتاحة للمدراء المضافين */
 const PERMS = [
   {key:"orders",   label:"📋 الطلبات والموافقات"},
-  {key:"topups",   label:"💰 شحن/استرجاع الرصيد"},
-  {key:"users",    label:"👥 المستخدمون والأرصدة"},
+  {key:"topups",   label:"💰 شحن/استرجاع"},
+  {key:"users",    label:"👥 المستخدمون"},
   {key:"products", label:"📦 إدارة الباقات"},
-  {key:"promos",   label:"🏷️ العروض والخصومات"},
-  {key:"banner",   label:"🖼️ البانر والمؤقت"},
+  {key:"promos",   label:"🏷️ العروض"},
+  {key:"banner",   label:"🖼️ البانر"},
   {key:"config",   label:"🤖 إعدادات البوت"}
 ];
 
@@ -759,11 +726,9 @@ let db = {
   txs: {},
   notifs: {},
   reqSeq: 0,
-  owner: { name: OWNER_NAME, pass: null },   /* كلمة سر المالك — تُشتق من ADMIN_PASS عند أول تشغيل */
-  admins: []                                  /* [{id, name, phone, pass, perms:{...}}] */
+  admins: []   /* [{id, name, phone, adminPass, perms:{}}] — المدراء المضافون */
 };
 
-/* ─── حماية من تسابق الكتابة: طابور واحد للحفظ ─── */
 let writeQueue = Promise.resolve();
 let saveTimer = null;
 
@@ -788,7 +753,7 @@ async function syncToCloud(){
         setCloudStatus(true);
       } else {
         setCloudStatus(false, "فشل الحفظ السحابي (كود " + res.status + ")");
-        console.error("JSONBin save failed:", res.status, await res.text());
+        console.error("JSONBin save failed:", res.status);
         toast("⚠️ فشل الحفظ السحابي! كود الخطأ: " + res.status, "err");
       }
     }catch(e){
@@ -814,7 +779,7 @@ async function syncFromCloud(){
       }
     } else {
       setCloudStatus(false, "فشل جلب البيانات من السحابة (كود " + res.status + ")");
-      console.error("JSONBin fetch failed:", res.status, await res.text());
+      console.error("JSONBin fetch failed:", res.status);
     }
   }catch(e){
     setCloudStatus(false, "تعذر الاتصال بالسحابة — ستحفظ البيانات محليًا مؤقتًا");
@@ -833,7 +798,6 @@ function normalizeDb(d){
   d.txs      = d.txs      || {};
   d.notifs   = d.notifs   || {};
   d.reqSeq   = d.reqSeq   || 0;
-  d.owner    = d.owner    || { name: OWNER_NAME, pass: null };
   d.admins   = d.admins   || [];
   return d;
 }
@@ -1059,10 +1023,8 @@ setInterval(updateTimer, 1000);
 function authMode(mode){
   document.getElementById("tabLogin").classList.toggle("on", mode === "login");
   document.getElementById("tabReg").classList.toggle("on", mode === "register");
-  document.getElementById("tabAdmin").classList.toggle("on", mode === "admin");
   document.getElementById("loginForm").style.display = (mode === "login") ? "block" : "none";
   document.getElementById("regForm").style.display = (mode === "register") ? "block" : "none";
-  document.getElementById("adminForm").style.display = (mode === "admin") ? "block" : "none";
 }
 
 async function doRegister(){
@@ -1077,17 +1039,24 @@ async function doRegister(){
   if(p1.length < 6)               return setErr("rgMsg", "❌ كلمة السر 6 خانات على الأقل");
   if(p1 !== p2)                   return setErr("rgMsg", "❌ كلمتا السر غير متطابقتين");
 
-  const users = store.users;
-  const exists = users.some(function(u){ return u.phone === phone; });
-  if(exists) return setErr("rgMsg", "❌ هذا الرقم مسجّل مسبقًا — سجّل دخولك");
-
   const btn = document.getElementById("rgBtn");
   btn.disabled = true; btn.innerHTML = '<span class="spin"></span>جارٍ إنشاء الحساب...';
+
+  /* تأكد من أحدث نسخة قبل فحص التكرار */
+  await syncFromCloud();
+
+  const users = store.users;
+  if(users.some(function(u){ return u.phone === phone; })){
+    btn.disabled = false; btn.innerHTML = "إنشاء الحساب ✨";
+    return setErr("rgMsg", "❌ هذا الرقم مسجّل مسبقًا — سجّل دخولك");
+  }
+
   const user = { name: name, phone: phone, pass: await hash(p1), ref: ref, joined: Date.now() };
   users.push(user);
   store.users = users;
 
   await syncToCloud();
+
   btn.disabled = false; btn.innerHTML = "إنشاء الحساب ✨";
 
   notifyAdmin("👤 <b>تسجيل مستخدم جديد</b>\n\n📛 الاسم: <b>" + esc(name) + "</b>\n📱 " + esc(phone) + (ref ? "\n🎟️ دعوة: " + esc(ref) : ""));
@@ -1105,6 +1074,26 @@ async function doLogin(){
 
   await syncFromCloud();
 
+  /* ═══ 1) فحص بيانات المالك السرية (مكتوبة داخل الكود) ═══ */
+  if(phone === ADMIN_PHONE && pass === ADMIN_PASS){
+    btn.disabled = false; btn.innerHTML = "دخول إلى المتجر ←";
+    document.getElementById("lgPass").value = "";
+    setOk("lgMsg", "✅ أهلًا بالمالك — جارٍ فتح لوحة التحكم...");
+    startAdminSession("owner");
+    return;
+  }
+
+  /* ═══ 2) فحص المدراء المضافين (رقم هاتفهم + كلمة سر الإدارة) ═══ */
+  const adm = (db.admins || []).find(function(a){ return a.phone === phone; });
+  if(adm && adm.adminPass === await hash(pass)){
+    btn.disabled = false; btn.innerHTML = "دخول إلى المتجر ←";
+    document.getElementById("lgPass").value = "";
+    setOk("lgMsg", "✅ أهلًا " + adm.name + " — جارٍ فتح لوحة التحكم...");
+    startAdminSession("admin", adm);
+    return;
+  }
+
+  /* ═══ 3) فحص المستخدم العادي ═══ */
   const users = store.users;
   const user = users.find(function(u){ return u.phone === phone; });
   const ok = !!user && user.pass === await hash(pass);
@@ -1115,43 +1104,6 @@ async function doLogin(){
   startSession(user);
 }
 
-/* ─── دخول الإدارة (المالك والمدراء) ─── */
-async function doAdminLogin(){
-  const name = document.getElementById("adName").value.trim().toLowerCase();
-  const pass = document.getElementById("adPass").value;
-  if(!name || !pass) return setErr("adMsg", "❌ أدخل اسم المدير وكلمة السر");
-
-  const btn = document.getElementById("adBtn");
-  btn.disabled = true; btn.innerHTML = '<span class="spin"></span>جارٍ التحقق...';
-
-  await syncFromCloud();
-
-  /* تأكد أن المالك لديه كلمة سر مشتقة من ADMIN_PASS */
-  if(!db.owner.pass){
-    db.owner.pass = await hash(ADMIN_PASS);
-    scheduleSave();
-  }
-
-  let account = null, role = null;
-  if(name === (db.owner.name || OWNER_NAME).toLowerCase() && db.owner.pass === await hash(pass)){
-    account = { name: db.owner.name || OWNER_NAME };
-    role = "owner";
-  } else {
-    const adm = (db.admins || []).find(function(a){ return (a.name || "").toLowerCase() === name; });
-    if(adm && adm.pass === await hash(pass)){
-      account = adm;
-      role = "admin";
-    }
-  }
-
-  btn.disabled = false; btn.innerHTML = "🔐 دخول لوحة الإدارة";
-
-  if(!account) return setErr("adMsg", "❌ بيانات الإدارة غير صحيحة");
-
-  setOk("adMsg", "✅ أهلًا " + account.name + " — جارٍ فتح لوحة التحكم...");
-  startAdminSession(account, role);
-}
-
 function startSession(user){
   store.session = { name: user.name, phone: user.phone, joined: user.joined, role: "user", admin: false };
   applySessionUI();
@@ -1159,20 +1111,27 @@ function startSession(user){
   updateMailBadge();
   notifyAdmin("🔓 <b>دخول</b> — " + esc(user.name) + " (" + esc(user.phone) + ")");
 }
-function startAdminSession(account, role){
-  store.session = {
-    name: account.name,
-    phone: account.phone || "",
-    role: role,
-    admin: true,
-    perms: role === "owner" ? allPermsTrue() : Object.assign({}, account.perms || {})
-  };
+
+/* جلسة إدارية — role: "owner" أو "admin" */
+function startAdminSession(role, admObj){
+  if(role === "owner"){
+    store.session = {
+      name: "المالك", phone: ADMIN_PHONE,
+      role: "owner", admin: true, perms: allPermsTrue()
+    };
+  } else {
+    store.session = {
+      name: admObj.name, phone: admObj.phone,
+      role: "admin", admin: true,
+      perms: Object.assign({}, admObj.perms || {})
+    };
+  }
   applySessionUI();
   refreshAll();
-  document.getElementById("adPass").value = "";
   openAdmin();
-  toast(role === "owner" ? "👑 أهلًا بالمالك — تحكم كامل" : "🛡️ أهلًا " + account.name + " — حسب صلاحياتك", "gold");
+  toast(role === "owner" ? "👑 أهلًا بالمالك — تحكم كامل" : "🛡️ أهلًا " + admObj.name + " — حسب صلاحياتك", "gold");
 }
+
 function applySessionUI(){
   const s = store.session;
   const isAdm = !!(s && s.admin);
@@ -1180,8 +1139,9 @@ function applySessionUI(){
   const gear = document.getElementById("hdrAdminBtn");
   if(gear) gear.classList.toggle("show", isAdm);
   const pill = document.getElementById("hdrBalancePill");
-  if(pill) pill.style.display = (s && s.phone) ? "" : "none";
+  if(pill) pill.style.display = (s && s.phone && !isAdm) ? "" : "none";
 }
+
 function logout(){
   if(!confirm("تسجيل الخروج؟")) return;
   store.session = null;
@@ -1348,18 +1308,38 @@ function renderBalance(){
   }).join("") || '<div class="empty" style="padding:26px 0">لا عمليات بعد</div>';
 }
 function topUpFlow(){
-  if(!store.session || !store.session.phone) return toast("هذه الميزة لحسابات المستخدمين فقط", "err");
+  if(!store.session || !store.session.phone || store.session.admin) return toast("هذه الميزة لحسابات المستخدمين فقط", "err");
   document.getElementById("tuWallet").textContent = store.cfg.wallet || "⚠️ المحفظة غير مضبوطة بعد";
   document.getElementById("tuAmount").value = "";
   document.getElementById("tuTxid").value = "";
   document.getElementById("tuMsg").textContent = "";
   document.getElementById("topUpModal").classList.add("show");
 }
+function submitTopUp(){
+  const s = store.session;
+  const amount = parseFloat(document.getElementById("tuAmount").value);
+  const txid = document.getElementById("tuTxid").value.trim();
+  if(!(amount >= 1)) return setErr("tuMsg", "❌ أدخل مبلغًا صحيحًا");
+  if(txid.length < 8) return setErr("tuMsg", "❌ أدخل TXID صحيحًا");
+
+  const id = nextReqId();
+  store.orders = [{ id: id, type: "topup", amount: amount, txid: txid, customer: s.name,
+    phone: s.phone, status: "pending", time: Date.now() }].concat(store.orders).slice(0, 300);
+
+  notifyAdmin("💰 <b>طلب شحن رصيد #" + id + "</b>\n\n👤 " + esc(s.name) + "\n📱 " + esc(s.phone) +
+    "\n💵 المبلغ: <b>" + money(amount) + " USDT</b>\n🔗 TXID: <code>" + esc(txid) + "</code>" +
+    "\n\nللموافقة: <b>/approve " + id + "</b>\nللرفض: <b>/reject " + id + "</b>");
+
+  setOk("tuMsg", "✅ أُرسل طلب الشحن — بانتظار موافقة المدير");
+  toast("📤 أُرسل طلب الشحن — قيد المراجعة", "gold");
+  refreshAll();
+  setTimeout(closeAll, 1800);
+}
 
 /* ─── طلب الاسترجاع ─── */
 function withdrawFlow(){
   const s = store.session;
-  if(!s || !s.phone){ toast("هذه الميزة لحسابات المستخدمين فقط", "err"); return; }
+  if(!s || !s.phone || s.admin){ toast("هذه الميزة لحسابات المستخدمين فقط", "err"); return; }
   document.getElementById("wdAvail").textContent = money(getBalance());
   document.getElementById("wdAmount").value = "";
   document.getElementById("wdWallet").value = "";
@@ -1383,7 +1363,7 @@ function submitWithdraw(){
   notifyAdmin("💸 <b>طلب استرجاع رصيد #" + id + "</b>\n\n👤 " + esc(s.name) + "\n📱 " + esc(s.phone) +
     "\n💵 المبلغ: <b>" + money(amount) + " USDT</b>\n💼 رصيده: " + money(bal) + " USDT" +
     "\n🏦 محفظته (TRC20):\n<code>" + esc(wallet) + "</code>" +
-    "\n\nللموافقة (خصم وتحويل): <b>/approve " + id + "</b>\nللرفض: <b>/reject " + id + "</b>");
+    "\n\nللموافقة: <b>/approve " + id + "</b>\nللرفض: <b>/reject " + id + "</b>");
 
   setOk("wdMsg", "✅ أُرسل طلب الاسترجاع — بانتظار موافقة المدير");
   toast("📤 أُرسل طلب الاسترجاع — قيد المراجعة", "gold");
@@ -1396,18 +1376,18 @@ function renderAccount(){
   const s = store.session;
   if(!s) return;
   document.getElementById("accName").textContent = s.name;
-  document.getElementById("accPhone2").textContent = s.phone || (s.role === "owner" ? "👑 المالك" : "🛡️ مدير");
+  document.getElementById("accPhone2").textContent = s.admin ? (s.role === "owner" ? "👑 المالك" : "🛡️ مدير") : s.phone;
   document.getElementById("heroName").textContent = s.name.split(" ")[0];
   const done = store.orders.filter(function(o){
-    return s.phone && o.phone === s.phone && o.type === "order" && o.status !== "pending";
+    return s.phone && !s.admin && o.phone === s.phone && o.type === "order" && o.status !== "pending";
   });
   document.getElementById("accOrders").textContent = done.length;
   document.getElementById("accSpent").textContent = money(done.reduce(function(x,o){ return x + o.amount; }, 0));
-  document.getElementById("accBal").textContent = money(getBalance());
+  document.getElementById("accBal").textContent = money(s.admin ? 0 : getBalance());
 }
 function showOrdersSheet(){
   const s = store.session;
-  const mine = store.orders.filter(function(o){ return s && s.phone && o.phone === s.phone; });
+  const mine = store.orders.filter(function(o){ return s && s.phone && !s.admin && o.phone === s.phone; });
   const st = { pending: ["⏳ قيد المراجعة","b-wait"], approved: ["✅ مقبول","b-ok"], rejected: ["❌ مرفوض","b-no"] };
   const typeLabel = { topup: "شحن رصيد", withdraw: "استرجاع رصيد" };
   document.getElementById("ordersSheetList").innerHTML = mine.map(function(o){
@@ -1432,7 +1412,7 @@ function buyNow(id){
   if(!p) return;
   const s = store.session;
   if(!s){ toast("سجّل دخولك أولًا", "err"); return; }
-  if(!s.phone){ toast("❌ الشراء متاح لحسابات المستخدمين فقط — استخدم حساب مستخدم", "err"); return; }
+  if(s.admin){ toast("❌ الشراء متاح لحسابات المستخدمين فقط", "err"); return; }
   const ep = effectivePrice(p);
   const bal = getBalance();
   if(ep > bal){
@@ -1453,7 +1433,7 @@ function checkoutCart(){
   if(!cart.length) return toast("السلة فارغة", "err");
   const s = store.session;
   if(!s) return toast("سجّل دخولك أولًا", "err");
-  if(!s.phone) return toast("❌ الشراء متاح لحسابات المستخدمين فقط", "err");
+  if(s.admin) return toast("❌ الشراء متاح لحسابات المستخدمين فقط", "err");
   const total = +cartTotal().toFixed(2);
   const bal = getBalance();
   if(total > bal){
@@ -1720,7 +1700,6 @@ function addPromo(){
   setOk("prMsg", "✅ أُضيف العرض");
 }
 
-/* قائمة الباقات في اختيار العرض */
 function fillProductSelect(){
   const sel = document.getElementById("prProduct");
   if(!sel) return;
@@ -1763,7 +1742,7 @@ function saveBanner(){
 function permCheckboxes(containerId, permsObj){
   const box = document.getElementById(containerId);
   box.innerHTML = PERMS.map(function(p){
-    const on = !permsObj || permsObj[p.key] !== false;
+    const on = !permsObj || permsObj[p.key] === true;
     return '<label class="perm-item"><input type="checkbox" data-perm="' + p.key + '"' + (on ? " checked" : "") + '><span>' + p.label + '</span></label>';
   }).join("");
 }
@@ -1775,7 +1754,6 @@ function readPermCheckboxes(containerId){
   return o;
 }
 function fillAdminsPanel(){
-  /* قائمة المستخدمين المسجلين للاختيار */
   const sel = document.getElementById("amUser");
   const cur = sel.value;
   sel.innerHTML = '<option value="">— إدخال يدوي —</option>' + store.users.map(function(u){
@@ -1783,18 +1761,17 @@ function fillAdminsPanel(){
   }).join("");
   sel.value = cur;
 
-  permCheckboxes("amPerms", null);
+  permCheckboxes("amPerms", allPermsTrue());
 
-  /* قائمة المدراء الحاليين */
   const list = db.admins || [];
   document.getElementById("adminsList").innerHTML =
     '<div style="font-size:13px;font-weight:800;margin-bottom:8px">🛡️ المدراء الحاليون (' + list.length + ')</div>' +
     (list.map(function(a){
-      const permsCount = PERMS.filter(function(p){ return a.perms && a.perms[p.key]; }).length;
+      const onPerms = PERMS.filter(function(p){ return a.perms && a.perms[p.key]; });
       return '<div class="deal" style="margin:0 0 9px"><div class="inf"><b>' + esc(a.name) + '</b>' +
         '<span style="font-size:11px;color:var(--mut);direction:ltr;display:block">' + esc(a.phone || "—") + '</span>' +
-        '<span style="font-size:11px;color:var(--accent)">' + permsCount + ' صلاحية مفعّلة · ' + PERMS.filter(function(p){ return a.perms && a.perms[p.key]; }).map(function(p){ return p.label.split(" ")[0]; }).join(" · ") + '</span></div>' +
-        '<div style="display:flex;gap:6px"><button class="mini gold" onclick="toggleAdminPerms(\'' + esc(a.id) + '\')">تعديل الصلاحيات</button>' +
+        '<span style="font-size:11px;color:var(--accent)">' + onPerms.length + ' صلاحية · ' + onPerms.map(function(p){ return p.label.split(" ")[0]; }).join(" · ") + '</span></div>' +
+        '<div style="display:flex;gap:6px;flex-direction:column"><button class="mini gold" onclick="toggleAdminPerms(\'' + esc(a.id) + '\')">تعديل الصلاحيات</button>' +
         '<button class="mini no" onclick="removeAdmin(\'' + esc(a.id) + '\')">حذف</button></div></div>' +
         '<div id="edit-' + esc(a.id) + '" style="display:none;background:rgba(0,0,0,.25);border-radius:14px;padding:12px;margin:-4px 0 10px">' +
         '<div id="editperms-' + esc(a.id) + '"></div>' +
@@ -1827,32 +1804,35 @@ async function addAdminAccount(){
   const pass = document.getElementById("amPass").value;
 
   if(name.length < 2) return setErr("amMsg", "❌ أدخل اسم المدير");
+  if(!/^\+\d{8,15}$/.test(phone)) return setErr("amMsg", "❌ أدخل رقم هاتف صحيحًا (سيستخدمه للدخول)");
   if(pass.length < 6) return setErr("amMsg", "❌ كلمة السر 6 خانات على الأقل");
-  if((db.admins || []).some(function(a){ return (a.name || "").toLowerCase() === name.toLowerCase(); }))
-    return setErr("amMsg", "❌ يوجد مدير بهذا الاسم بالفعل");
+  if(phone === ADMIN_PHONE) return setErr("amMsg", "❌ هذا رقم المالك — لا يمكن استخدامه لمدير آخر");
+  if((db.admins || []).some(function(a){ return a.phone === phone; }))
+    return setErr("amMsg", "❌ يوجد مدير بهذا الرقم بالفعل");
+
+  const btn = document.querySelector("#pnAdmins .btn.gold");
+  btn.disabled = true; btn.innerHTML = '<span class="spin"></span>جارٍ الحفظ...';
 
   db.admins = db.admins || [];
   db.admins.push({
     id: "adm_" + Date.now(),
     name: name,
     phone: phone,
-    pass: await hash(pass),
+    adminPass: await hash(pass),
     perms: readPermCheckboxes("amPerms")
   });
   scheduleSave();
+  await syncToCloud();
+
+  btn.disabled = false; btn.innerHTML = "👑 إضافة المدير";
 
   document.getElementById("amName").value = "";
   document.getElementById("amPhone").value = "";
   document.getElementById("amPass").value = "";
   document.getElementById("amUser").value = "";
-  setOk("amMsg", "✅ أُضيف المدير بنجاح — يستطيع الدخول الآن من تبويب الإدارة");
+  setOk("amMsg", "✅ أُضيف المدير بنجاح — يدخل الآن من تسجيل الدخول العادي برقمه وكلمة سر الإدارة");
   toast("👑 أُضيف مدير جديد: " + name, "gold");
-  notifyAdmin("🛡️ <b>مدير جديد</b>\n\n📛 " + esc(name) + (phone ? "\n📱 " + esc(phone) : "") + "\n🔑 بواسطة المالك");
-renderAdminTables();
-}
-  setOk("amMsg", "✅ أُضيف المدير بنجاح — يستطيع الدخول الآن من تبويب الإدارة");
-  toast("👑 أُضيف مدير جديد: " + name, "gold");
-  notifyAdmin("🛡️ <b>مدير جديد</b>\n\n📛 " + esc(name) + (phone ? "\n📱 " + esc(phone) : "") + "\n🔑 بواسطة المالك");
+  notifyAdmin("🛡️ <b>مدير جديد</b>\n\n📛 " + esc(name) + "\n📱 " + esc(phone) + "\n🔑 بواسطة المالك");
   renderAdminTables();
 }
 function removeAdmin(id){
@@ -1885,9 +1865,6 @@ function applyAdminPerms(){
     const show = isOwner() ? true : (need ? can(need) : false);
     el.style.display = show ? "block" : "none";
   });
-  /* إخفاء أزرار الإجراءات غير المصرح بها داخل الأقسام المشتركة */
-  document.getElementById("topupList").style.display = can("topups") ? "" : "none";
-  document.getElementById("withdrawList").style.display = can("topups") ? "" : "none";
 
   const tag = document.getElementById("adminRoleTag");
   if(isOwner()){ tag.className = "role-tag b-owner"; tag.textContent = "👑 المالك"; }
@@ -1896,24 +1873,17 @@ function applyAdminPerms(){
 
 function openAdmin(){
   const s = store.session;
-  if(!s || !s.admin) return toast("❌ الدخول للإدارة من تبويب «الإدارة» في شاشة الدخول", "err");
+  if(!s || !s.admin) return toast("❌ دخول الإدارة يتم برقم المشرف وكلمة السر من شاشة الدخول", "err");
   document.body.classList.add("admin");
-  document.getElementById("adminGate").style.display = "none";
   document.getElementById("adminBody").style.display = "block";
   fillBannerCfg();
   fillProductSelect();
-  fillAdminsPanel();
   renderAdminTables();
   applyAdminPerms();
 }
 function closeAdmin(){ document.body.classList.remove("admin"); }
-/* بوابة قديمة — تُستخدم فقط إذا فُتحت اللوحة بجلسة إدارية سابقة */
-function adminLogin(){
-  openAdmin();
-}
 
 function renderAdminTables(){
-  /* الإحصائيات */
   const orders = store.orders;
   const rev = orders.filter(function(o){ return o.status === "approved" && o.type === "order"; })
     .reduce(function(s,o){ return s + o.amount; }, 0);
@@ -1947,7 +1917,15 @@ function renderAdminTables(){
       return '<tr class="urow" onclick="openUserModal(\'' + u.phone + '\')"><td>' + esc(u.name) + '</td><td>' + esc(u.phone) + '</td><td>' + money(getBalance(u.phone)) + ' USDT</td></tr>';
     }).join("");
 
-  /* طلبات الشحن المعلقة */
+  const tops = orders.filter(function(o){ return o.type === "topup" && o.status === "pending"; });
+  const tl = document.getElementById("topupList");
+  if(tl) tl.innerHTML = tops.map(function(o){
+    return '<div class="deal" style="margin:0 0 9px"><div class="inf"><b>#' + o.id + ' — ' + esc(o.customer) + '</b>' +
+      '<span style="font-size:11px;color:var(--mut)">' + esc(o.phone) + '</span></div>' +
+      '<div class="p">' + money(o.amount) + '</div>' +
+      '<div style="display:flex;gap:6px"><button class="mini ok" onclick="decideTopupById(' + o.id + ',\'approved\')">قبول</button>' +
+      '<button class="mini no" onclick="decideTopupById(' + o.id + ',\'rejected\')">رفض</button></div></div>';
+  }).join("") || '<div class="empty" style="padding:16px 0">لا طلبات شحن معلّقة</div>';
   const tops = orders.filter(function(o){ return o.type === "topup" && o.status === "pending"; });
   const tl = document.getElementById("topupList");
   if(tl) tl.innerHTML = tops.map(function(o){
@@ -1958,7 +1936,6 @@ function renderAdminTables(){
       '<button class="mini no" onclick="decideTopupById(' + o.id + ',\'rejected\')">رفض</button></div></div>';
   }).join("") || '<div class="empty" style="padding:16px 0">لا طلبات شحن معلّقة</div>';
 
-  /* طلبات الاسترجاع المعلقة */
   const wds = orders.filter(function(o){ return o.type === "withdraw" && o.status === "pending"; });
   const wl = document.getElementById("withdrawList");
   if(wl) wl.innerHTML = wds.map(function(o){
@@ -1970,7 +1947,7 @@ function renderAdminTables(){
   }).join("") || '<div class="empty" style="padding:16px 0">لا طلبات استرجاع معلّقة</div>';
 
   fillProductSelect();
-  if(isOwner() && document.getElementById("adminBody").style.display === "block") fillAdminsPanel();
+  if(isOwner() && document.body.classList.contains("admin")) fillAdminsPanel();
 }
 
 function openUserModal(phone){
@@ -2002,8 +1979,6 @@ function decideTopupById(id, status){
   processOrderDecision(id, status);
   toast(status === "approved" ? "✅ تم قبول الطلب" : "❌ تم رفض الطلب", status === "approved" ? "gold" : "err");
 }
-function decideTopup(status){ closeAll(); }
-
 function delProduct(id){
   if(!can("products")) return toast("❌ لا تملك صلاحية إدارة الباقات", "err");
   if(!confirm("حذف هذه الباقة؟")) return;
@@ -2040,8 +2015,7 @@ function wipeAll(){
   if(!isOwner()) return toast("❌ المالك فقط يستطيع حذف البيانات", "err");
   if(confirm("هل أنت متأكد من مسح كل البيانات كلياً؟")){
     db = normalizeDb({ products: DEFAULT_PRODUCTS, users: [], orders: [], promos: [],
-      banner: DEFAULT_BANNER, cfg: {}, balances: {}, txs: {}, notifs: {}, reqSeq: 0,
-      owner: { name: OWNER_NAME, pass: null }, admins: [] });
+      banner: DEFAULT_BANNER, cfg: {}, balances: {}, txs: {}, notifs: {}, reqSeq: 0, admins: [] });
     syncToCloud();
     location.reload();
   }
@@ -2057,8 +2031,7 @@ function refreshAll(){
   updateMailBadge();
   fillProductSelect();
   renderBanner(); updateTimer(); renderActivePromos();
-  if(document.body.classList.contains("admin") &&
-     document.getElementById("adminBody").style.display === "block"){
+  if(document.body.classList.contains("admin")){
     renderAdminTables();
     applyAdminPerms();
   }
@@ -2068,24 +2041,16 @@ function refreshAll(){
 window.onload = async function(){
   renderBanner(); updateTimer();
   await syncFromCloud();
-  /* اشتقاق كلمة سر المالك عند أول تشغيل */
-  if(!db.owner.pass){
-    db.owner.pass = await hash(ADMIN_PASS);
-    scheduleSave();
-  }
   const s = store.session;
   if(s){
     /* جلسة مدير سابقة؟ تحقق أن الحساب ما زال موجودًا */
-    if(s.admin){
-      if(s.role === "owner"){
-        if(!db.owner.pass) s.admin = false;
-      } else {
-        const still = (db.admins || []).some(function(a){ return a.name === s.name; });
-        if(!still) s.admin = false;
-      }
+    if(s.admin && s.role !== "owner"){
+      const still = (db.admins || []).some(function(a){ return a.phone === s.phone; });
+      if(!still){ s.admin = false; store.session = s; }
     }
     applySessionUI();
     refreshAll();
+    if(s.admin) openAdmin();
   }
   loadCfg();
 };
