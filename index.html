@@ -211,6 +211,9 @@ nav{position:fixed;bottom:0;left:0;right:0;z-index:100;display:flex;justify-cont
 .sheet{background:rgba(16,23,36,.98);border:1px solid var(--line2);border-radius:24px 24px 0 0;width:100%;max-width:520px;
   padding:22px 20px 30px;max-height:88vh;overflow-y:auto;transform:translateY(100%);transition:transform .45s var(--ease)}
 .modal.show .sheet{transform:none}
+.sheet-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+.sheet-x{background:rgba(255,255,255,.06);border:1px solid var(--line2);color:var(--txt);border-radius:10px;width:34px;height:34px;
+  font-size:15px;cursor:pointer;flex-shrink:0}
 .handle{width:42px;height:4px;border-radius:99px;background:var(--line2);margin:0 auto 15px}
 .sheet h3{font-size:18px;font-weight:900;margin-bottom:4px}
 .step{display:flex;gap:12px;align-items:flex-start;margin:13px 0}
@@ -450,7 +453,7 @@ input[type="datetime-local"]{direction:ltr;text-align:left}
 <!-- الدفع -->
 <div class="modal" id="payModal"><div class="sheet">
   <div class="handle"></div>
-  <h3>💳 تأكيد الدفع من الرصيد</h3>
+  <div class="sheet-head"><h3>💳 تأكيد الدفع من الرصيد</h3><button class="sheet-x" onclick="closeAll()">✕</button></div>
   <p style="font-size:12.5px;color:var(--mut);margin-bottom:12px">سيتم خصم المبلغ مباشرة من رصيد حسابك</p>
   <div class="step"><div class="n">1</div><p>باقات الشحن المطلوبة</p></div>
   <div id="payItems" style="font-size:13px;background:rgba(0,0,0,.25);border-radius:12px;padding:12px 14px;line-height:2"></div>
@@ -466,7 +469,7 @@ input[type="datetime-local"]{direction:ltr;text-align:left}
 <!-- شحن الرصيد -->
 <div class="modal" id="topUpModal"><div class="sheet">
   <div class="handle"></div>
-  <h3>➕ شحن الرصيد</h3>
+  <div class="sheet-head"><h3>➕ شحن الرصيد</h3><button class="sheet-x" onclick="closeAll()">✕</button></div>
   <p style="font-size:12.5px;color:var(--mut);margin-bottom:12px">حوّل المبلغ إلى محفظة المتجر ثم أرسل TXID — يُضاف الرصيد بعد موافقة المدير</p>
   <div class="fgroup"><label>مبلغ الشحن (USDT)</label><input id="tuAmount" type="number" min="1" placeholder="50"></div>
   <div class="addr" id="tuWallet" onclick="copyAddr()"></div>
@@ -476,15 +479,31 @@ input[type="datetime-local"]{direction:ltr;text-align:left}
   <p id="tuMsg" class="msg"></p>
 </div></div>
 
+<!-- طلب استرجاع -->
+<div class="modal" id="withdrawModal"><div class="sheet">
+  <div class="handle"></div>
+  <div class="sheet-head"><h3>💸 طلب استرجاع رصيد</h3><button class="sheet-x" onclick="closeAll()">✕</button></div>
+  <p style="font-size:12.5px;color:var(--mut);margin-bottom:12px">أدخل المبلغ وعنوان محفظتك (TRC20) — يُخصم المبلغ من رصيدك بعد موافقة المدير ويُحوّل لمحفظتك</p>
+  <div style="text-align:center;font-size:13px;margin-bottom:12px">رصيدك المتاح: <b id="wdAvail" style="color:var(--accent)">0.00</b> USDT</div>
+  <div class="fgroup"><label>المبلغ المطلوب استرجاعه (USDT)</label><input id="wdAmount" type="number" min="1" step="0.01" placeholder="50"></div>
+  <div class="fgroup"><label>عنوان المحفظة (TRC20)</label><input id="wdWallet" placeholder="Txxxxxxxxxxxxxxxxxxxxx" style="direction:ltr;text-align:left"></div>
+  <button class="btn" onclick="submitWithdraw()">📤 إرسال طلب الاسترجاع</button>
+  <button class="btn gray" onclick="closeAll()">إلغاء</button>
+  <p id="wdMsg" class="msg"></p>
+</div></div>
+
 <!-- سجل الطلبات -->
 <div class="modal" id="ordersModal"><div class="sheet">
-  <div class="handle"></div><h3>🧾 سجل الطلبات</h3>
+  <div class="handle"></div>
+  <div class="sheet-head"><h3>🧾 سجل الطلبات</h3><button class="sheet-x" onclick="closeAll()">✕</button></div>
   <div id="ordersSheetList" style="margin-top:12px"></div>
+  <button class="btn gray" style="margin-top:12px" onclick="closeAll()">إغلاق</button>
 </div></div>
 
 <!-- صندوق البريد -->
 <div class="modal" id="notifModal"><div class="sheet">
-  <div class="handle"></div><h3>📬 صندوق البريد</h3>
+  <div class="handle"></div>
+  <div class="sheet-head"><h3>📬 صندوق البريد</h3><button class="sheet-x" onclick="closeAll()">✕</button></div>
   <p style="font-size:12px;color:var(--mut);margin-bottom:10px">إشعارات القبول والرفض وتعديلات الرصيد تصل هنا</p>
   <div id="notifList" style="margin-top:12px"></div>
   <button class="btn gray" style="margin-top:12px" onclick="closeAll();markAllRead()">✓ تحديد الكل كمقروء</button>
@@ -493,7 +512,7 @@ input[type="datetime-local"]{direction:ltr;text-align:left}
 <!-- معرض صور المنتج -->
 <div class="modal gallery-modal" id="galleryModal"><div class="sheet">
   <div class="handle"></div>
-  <h3 id="galName">🖼️ صور الباقة</h3>
+  <div class="sheet-head"><h3 id="galName">🖼️ صور الباقة</h3><button class="sheet-x" onclick="closeAll()">✕</button></div>
   <div class="gal-main" id="galMain"></div>
   <div class="gal-thumbs" id="galThumbs"></div>
   <div class="gal-nav">
@@ -518,10 +537,43 @@ input[type="datetime-local"]{direction:ltr;text-align:left}
     </div>
     <div id="adminBody" style="display:none">
       <div class="stat-grid" id="adminStats"></div>
+
+      <div class="panel"><h3>🖼️ البانر والمؤقت (قسم العروض)</h3>
+        <div class="switch-row">
+          <div class="st"><b>إظهار البانر</b><span>شريط "عروض الأسبوع" أعلى صفحة العروض</span></div>
+          <label class="switch"><input type="checkbox" id="bnShow"><span class="slider"></span></label>
+        </div>
+        <div class="fgroup"><label>العنوان الصغير (Kicker)</label><input id="bnKicker" placeholder="⚡ عروض الأسبوع"></div>
+        <div class="fgroup"><label>النص الكبير</label><input id="bnBig" placeholder="خصومات حتى 40%"></div>
+        <div class="fgroup"><label>عبارة "ينتهي العرض بعد"</label><input id="bnEndsLabel" placeholder="ينتهي العرض بعد:"></div>
+        <div class="switch-row">
+          <div class="st"><b>تفعيل المؤقت</b><span>العدّاد أسفل البانر</span></div>
+          <label class="switch"><input type="checkbox" id="bnTimer"><span class="slider"></span></label>
+        </div>
+        <div class="form-2col">
+          <div class="fgroup"><label>وضع المؤقت</label>
+            <select id="bnTimerMode" onchange="document.getElementById('bnTimerEndWrap').style.display=this.value==='custom'?'block':'none'">
+              <option value="daily">يومي — ينتهي منتصف الليل</option>
+              <option value="custom">تاريخ مخصص</option>
+            </select></div>
+          <div class="fgroup" id="bnTimerEndWrap" style="display:none"><label>تاريخ ووقت الانتهاء</label>
+            <input id="bnTimerEnd" type="datetime-local"></div>
+        </div>
+        <div class="switch-row">
+          <div class="st"><b>رسالة "انتهى وقت العرض"</b><span>تظهر بعد انتهاء المؤقت المخصص</span></div>
+          <label class="switch"><input type="checkbox" id="bnEndedMsg"><span class="slider"></span></label>
+        </div>
+        <button class="btn gold" onclick="saveBanner()">💾 حفظ البانر والمؤقت</button>
+        <p id="bnMsg" class="msg"></p>
+      </div>
+
       <div class="panel"><h3>📨 طلبات الشراء بانتظار المراجعة</h3><table class="tbl" id="pendingTable"></table></div>
       <div class="panel"><h3>💰 طلبات شحن الرصيد</h3>
         <p style="font-size:11.5px;color:var(--mut);margin-bottom:10px">اضغط على أي طلب لعرض تفاصيله الكاملة والقبول أو الرفض</p>
         <div id="topupList"></div></div>
+      <div class="panel"><h3>💸 طلبات الاسترجاع</h3>
+        <p style="font-size:11.5px;color:var(--mut);margin-bottom:10px">عند القبول يُخصم المبلغ من رصيد المستخدم ويُحوّل لعنوان محفظته</p>
+        <div id="withdrawList"></div></div>
       <div class="panel"><h3>👥 المستخدمون</h3>
         <p style="font-size:11.5px;color:var(--mut);margin-bottom:10px">اضغط على المستخدم لإضافة أو خصم رصيد من حسابه</p>
         <table class="tbl" id="usersTable"></table></div>
@@ -591,7 +643,7 @@ input[type="datetime-local"]{direction:ltr;text-align:left}
 <!-- نافذة المستخدم (إدارة الرصيد) -->
 <div class="modal" id="userModal"><div class="sheet">
   <div class="handle"></div>
-  <h3>👤 إدارة المستخدم</h3>
+  <div class="sheet-head"><h3>👤 إدارة المستخدم</h3><button class="sheet-x" onclick="closeAll()">✕</button></div>
   <div class="info-grid" id="umInfo"></div>
   <div class="fgroup"><label>المبلغ (USDT)</label><input id="umAmount" type="number" min="0.01" step="0.01" placeholder="50"></div>
   <div class="fgroup"><label>ملاحظة (تظهر للمستخدم)</label><input id="umNote" placeholder="مكافأة · تعديل يدوي..."></div>
@@ -606,7 +658,7 @@ input[type="datetime-local"]{direction:ltr;text-align:left}
 <!-- نافذة طلب الشحن -->
 <div class="modal" id="topupModal"><div class="sheet">
   <div class="handle"></div>
-  <h3>💰 تفاصيل طلب الشحن <span id="tmId" style="color:var(--gold)">#—</span></h3>
+  <div class="sheet-head"><h3>💰 تفاصيل طلب الشحن <span id="tmId" style="color:var(--gold)">#—</span></h3><button class="sheet-x" onclick="closeAll()">✕</button></div>
   <div class="info-grid" id="tmInfo"></div>
   <div class="row-flex">
     <button class="btn" onclick="decideTopup('approved')">✅ قبول وإضافة الرصيد</button>
@@ -624,7 +676,7 @@ const JSONBIN_API_KEY = "$2a$10$ivwSTRMoM3LWu6xcGn1TuOwDAt1Od36P/ifB92r0AgPfmP6Z
 const JSONBIN_URL     = "https://api.jsonbin.io/v3/b/" + JSONBIN_BIN_ID;
 
 /* ═══════════ الإعدادات العامة ═══════════ */
-const ADMIN_PASS = "nova-admin-2026";
+const ADMIN_PASS = "2026";
 const DEFAULT_BANNER = {
   show: true, timer: true,
   kicker: "⚡ عروض الأسبوع",
@@ -1167,24 +1219,39 @@ function topUpFlow(){
   document.getElementById("tuMsg").textContent = "";
   document.getElementById("topUpModal").classList.add("show");
 }
+
+/* ─── طلب الاسترجاع ─── */
 function withdrawFlow(){
   const s = store.session;
-  notifyAdmin("💸 <b>طلب استرجاع رصيد</b>\n\n👤 " + esc(s.name) + "\n📱 " + esc(s.phone) + "\n💵 المتاح: " + money(getBalance()) + " USDT\n\n⏳ بانتظار تأكيد المدير");
-  toast("📤 أُرسل طلب الاسترجاع للمدير — قيد المراجعة", "gold");
+  if(!s){ toast("سجّل دخولك أولًا", "err"); return; }
+  document.getElementById("wdAvail").textContent = money(getBalance());
+  document.getElementById("wdAmount").value = "";
+  document.getElementById("wdWallet").value = "";
+  document.getElementById("wdMsg").textContent = "";
+  document.getElementById("withdrawModal").classList.add("show");
 }
-function submitTopUp(){
-  const amount = parseFloat(document.getElementById("tuAmount").value);
-  const txid = document.getElementById("tuTxid").value.trim();
+function submitWithdraw(){
   const s = store.session;
-  if(!(amount >= 1)) return setErr("tuMsg", "❌ أدخل مبلغًا صحيحًا");
-  if(txid.length < 10) return setErr("tuMsg", "❌ الصق TXID صحيحًا");
+  const amount = parseFloat(document.getElementById("wdAmount").value);
+  const wallet = document.getElementById("wdWallet").value.trim();
+  const bal = getBalance();
+
+  if(!(amount >= 1))             return setErr("wdMsg", "❌ أدخل مبلغًا صحيحًا");
+  if(amount > bal)               return setErr("wdMsg", "❌ المبلغ أكبر من رصيدك المتاح (" + money(bal) + " USDT)");
+  if(!/^T[0-9A-Za-z]{25,40}$/.test(wallet)) return setErr("wdMsg", "❌ أدخل عنوان محفظة TRC20 صحيحًا (يبدأ بحرف T)");
+
   const id = nextReqId();
-  store.orders = [{ id: id, type: "topup", amount: amount, txid: txid, customer: s.name,
+  store.orders = [{ id: id, type: "withdraw", amount: amount, wallet: wallet, customer: s.name,
     phone: s.phone, status: "pending", time: Date.now() }].concat(store.orders).slice(0, 300);
-  notifyAdmin("💰 <b>طلب شحن رصيد #" + id + "</b>\n\n👤 " + esc(s.name) + "\n📱 " + esc(s.phone) +
-    "\n💵 المبلغ: <b>" + money(amount) + " USDT</b>\n🔗 TXID: <code>" + esc(txid) + "</code>\n\nللموافقة: <b>/approve " + id + "</b>");
-  setOk("tuMsg", "✅ أُرسل طلب الشحن للمدير — قيد المراجعة");
-  toast("📤 أُرسل طلب الشحن — بانتظار المراجعة", "gold");
+
+  notifyAdmin("💸 <b>طلب استرجاع رصيد #" + id + "</b>\n\n👤 " + esc(s.name) + "\n📱 " + esc(s.phone) +
+    "\n💵 المبلغ: <b>" + money(amount) + " USDT</b>\n💼 رصيده: " + money(bal) + " USDT" +
+    "\n🏦 محفظته (TRC20):\n<code>" + esc(wallet) + "</code>" +
+    "\n\nللموافقة (خصم وتحويل): <b>/approve " + id + "</b>\nللرفض: <b>/reject " + id + "</b>");
+
+  setOk("wdMsg", "✅ أُرسل طلب الاسترجاع — بانتظار موافقة المدير");
+  toast("📤 أُرسل طلب الاسترجاع — قيد المراجعة", "gold");
+  refreshAll();
   setTimeout(closeAll, 1800);
 }
 
@@ -1205,10 +1272,12 @@ function renderAccount(){
 function showOrdersSheet(){
   const mine = store.orders.filter(function(o){ return store.session && o.phone === store.session.phone; });
   const st = { pending: ["⏳ قيد المراجعة","b-wait"], approved: ["✅ مقبول","b-ok"], rejected: ["❌ مرفوض","b-no"] };
+  const typeLabel = { topup: "شحن رصيد", withdraw: "استرجاع رصيد" };
   document.getElementById("ordersSheetList").innerHTML = mine.map(function(o){
-    const label = o.type === "topup" ? "شحن رصيد" : o.item;
+    const label = typeLabel[o.type] || o.item;
     return '<div class="tx" style="margin:0 0 9px"><div><b>' + esc(label) + '</b>' +
-      (o.txid ? '<span style="direction:ltr;display:inline-block">' + esc(String(o.txid).slice(0,16)) + '…</span>' : '') + '</div>' +
+      (o.txid ? '<span style="direction:ltr;display:inline-block">' + esc(String(o.txid).slice(0,16)) + '…</span>' : '') +
+      (o.wallet ? '<span style="direction:ltr;display:inline-block">🏦 ' + esc(String(o.wallet).slice(0,10)) + '…</span>' : '') + '</div>' +
       '<div><div class="' + (o.type === "topup" ? "plus" : "minus") + '" style="font-weight:900;font-size:13px">' + money(o.amount) + '</div>' +
       '<span class="badge ' + (st[o.status] ? st[o.status][1] : "") + '">' + (st[o.status] ? st[o.status][0] : o.status) + '</span></div></div>';
   }).join("") || '<div class="empty">لا طلبات بعد</div>';
@@ -1385,8 +1454,11 @@ async function handleCommand(cmd, chat){
     const pend = store.orders.filter(function(o){ return o.status === "pending"; });
     if(!pend.length) return sendTG(chat, "✅ لا طلبات معلّقة");
     return sendTG(chat, "⏳ <b>معلّقة:</b>\n\n" + pend.map(function(o){
-      const label = o.type === "topup" ? "شحن " + money(o.amount) : esc(o.item) + " — " + money(o.amount) + " USDT";
-      return "#" + o.id + " — " + label + "\n👤 " + esc(o.customer) + (o.note ? "\n🆔 " + esc(o.note) : "") + "\n/approve " + o.id + " | /reject " + o.id;
+      const typeL = { topup: "شحن رصيد", withdraw: "استرجاع" };
+      const label = typeL[o.type] ? typeL[o.type] + " " + money(o.amount) : esc(o.item) + " — " + money(o.amount) + " USDT";
+      return "#" + o.id + " — " + label + "\n👤 " + esc(o.customer) +
+        (o.note ? "\n🆔 " + esc(o.note) : "") + (o.wallet ? "\n🏦 " + esc(o.wallet) : "") +
+        "\n/approve " + o.id + " | /reject " + o.id;
     }).join("\n\n"));
   }
   if(c === "/products"){
@@ -1449,6 +1521,14 @@ function processOrderDecision(id, status){
     } else {
       pushNotif(o.phone, "❌ تم رفض طلب شحن الرصيد #" + o.id, "err");
     }
+  } else if(o.type === "withdraw"){
+    if(status === "approved"){
+      addBalanceTo(o.phone, -o.amount, "استرجاع رصيد مقبول #" + o.id + " → " + o.wallet);
+      pushNotif(o.phone, "✅ تمت معالجة طلب الاسترجاع #" + o.id + " — سيُحوّل " + money(o.amount) + " USDT إلى محفظتك", "ok");
+      notifyAdmin("💸 تم قبول الاسترجاع #" + o.id + "\n🏦 حوّل " + money(o.amount) + " USDT إلى:\n<code>" + esc(o.wallet) + "</code>");
+    } else {
+      pushNotif(o.phone, "❌ تم رفض طلب الاسترجاع #" + o.id + " — لم يُخصم أي مبلغ", "err");
+    }
   } else if(o.type === "order"){
     if(status === "approved"){
       pushNotif(o.phone, "✅ تم شحن الشدات بنجاح للطلب #" + o.id, "ok");
@@ -1465,7 +1545,7 @@ function addBalanceTo(phone, amount, label){
   const cur = getBalance(phone);
   setBalance(+(cur + amount).toFixed(2), phone);
   const tx = getTx(phone);
-  tx.unshift({ label: label, amount: amount, plus: true, time: Date.now() });
+  tx.unshift({ label: label, amount: Math.abs(amount), plus: amount > 0, time: Date.now() });
   setTx(tx, phone);
 }
 
@@ -1509,6 +1589,36 @@ function fillProductSelect(){
   }).join("");
 }
 
+/* ─── إعدادات البانر والمؤقت ─── */
+function fillBannerCfg(){
+  const b = getBanner();
+  document.getElementById("bnShow").checked = !!b.show;
+  document.getElementById("bnKicker").value = b.kicker || "";
+  document.getElementById("bnBig").value = b.big || "";
+  document.getElementById("bnEndsLabel").value = b.endsLabel || "";
+  document.getElementById("bnTimer").checked = !!b.timer;
+  document.getElementById("bnTimerMode").value = b.timerMode || "daily";
+  document.getElementById("bnTimerEnd").value = b.timerEnd || "";
+  document.getElementById("bnEndedMsg").checked = !!b.endedMsg;
+  document.getElementById("bnTimerEndWrap").style.display = (b.timerMode === "custom") ? "block" : "none";
+}
+function saveBanner(){
+  const banner = {
+    show: document.getElementById("bnShow").checked,
+    kicker: document.getElementById("bnKicker").value.trim(),
+    big: document.getElementById("bnBig").value.trim(),
+    endsLabel: document.getElementById("bnEndsLabel").value.trim(),
+    timer: document.getElementById("bnTimer").checked,
+    timerMode: document.getElementById("bnTimerMode").value,
+    timerEnd: document.getElementById("bnTimerEnd").value,
+    endedMsg: document.getElementById("bnEndedMsg").checked
+  };
+  setBanner(banner);
+  renderBanner(); updateTimer();
+  setOk("bnMsg", "✅ تم حفظ البانر — افتح صفحة العروض لرؤية التغييرات");
+  toast("✅ تم تحديث البانر والمؤقت", "gold");
+}
+
 function openAdmin(){
   document.body.classList.add("admin");
   document.getElementById("adminGate").style.display = "block";
@@ -1522,6 +1632,7 @@ function adminLogin(){
   if(p === ADMIN_PASS){
     document.getElementById("adminGate").style.display = "none";
     document.getElementById("adminBody").style.display = "block";
+    fillBannerCfg();
     fillProductSelect();
     renderAdminTables();
   } else setErr("gateMsg", "❌ كلمة السر غير صحيحة");
@@ -1536,9 +1647,10 @@ function renderAdminTables(){
     }).join("");
 
   const orders = store.orders;
-  document.getElementById("ordersTable").innerHTML = '<tr><th>#</th><th>المستخدم</th><th>المنتج/الشحن</th><th>المبلغ</th><th>الحالة</th></tr>' +
+  document.getElementById("ordersTable").innerHTML = '<tr><th>#</th><th>المستخدم</th><th>النوع</th><th>المبلغ</th><th>الحالة</th></tr>' +
     orders.map(function(o){
-      return '<tr><td>' + o.id + '</td><td>' + esc(o.customer) + '</td><td>' + esc(o.item || "شحن رصيد") + '</td><td>' + money(o.amount) + '</td><td>' + o.status + '</td></tr>';
+      const typeL = { topup: "شحن رصيد", withdraw: "استرجاع", order: "شراء" };
+      return '<tr><td>' + o.id + '</td><td>' + esc(o.customer) + '</td><td>' + (typeL[o.type] || o.type) + '</td><td>' + money(o.amount) + '</td><td>' + o.status + '</td></tr>';
     }).join("");
 
   const users = store.users;
@@ -1556,6 +1668,16 @@ function renderAdminTables(){
       '<div style="display:flex;gap:6px"><button class="mini ok" onclick="decideTopupById(' + o.id + ',\'approved\')">قبول</button>' +
       '<button class="mini no" onclick="decideTopupById(' + o.id + ',\'rejected\')">رفض</button></div></div>';
   }).join("") || '<div class="empty" style="padding:16px 0">لا طلبات شحن معلّقة</div>';
+
+  /* طلبات الاسترجاع المعلقة */
+  const wds = orders.filter(function(o){ return o.type === "withdraw" && o.status === "pending"; });
+  document.getElementById("withdrawList").innerHTML = wds.map(function(o){
+    return '<div class="deal" style="margin:0 0 9px"><div class="inf"><b>#' + o.id + ' — ' + esc(o.customer) + '</b>' +
+      '<span style="font-size:11px;color:var(--mut);direction:ltr;display:block">' + esc(o.wallet) + '</span></div>' +
+      '<div class="p">' + money(o.amount) + '</div>' +
+      '<div style="display:flex;gap:6px"><button class="mini ok" onclick="decideTopupById(' + o.id + ',\'approved\')">قبول</button>' +
+      '<button class="mini no" onclick="decideTopupById(' + o.id + ',\'rejected\')">رفض</button></div></div>';
+  }).join("") || '<div class="empty" style="padding:16px 0">لا طلبات استرجاع معلّقة</div>';
 
   fillProductSelect();
 }
@@ -1584,7 +1706,7 @@ function adminAdjust(sign){
 }
 function decideTopupById(id, status){
   processOrderDecision(id, status);
-  toast(status === "approved" ? "✅ تم قبول طلب الشحن" : "❌ تم رفض طلب الشحن", status === "approved" ? "gold" : "err");
+  toast(status === "approved" ? "✅ تم قبول الطلب" : "❌ تم رفض الطلب", status === "approved" ? "gold" : "err");
 }
 function decideTopup(status){
   closeAll();
@@ -1637,6 +1759,7 @@ function refreshAll(){
   renderAccount();
   updateMailBadge();
   fillProductSelect();
+  renderBanner(); updateTimer(); renderActivePromos();
   if(document.getElementById("adminBody").style.display === "block") renderAdminTables();
 }
 
