@@ -1926,7 +1926,7 @@ function renderAdminTables(){
       '<div style="display:flex;gap:6px"><button class="mini ok" onclick="decideTopupById(' + o.id + ',\'approved\')">قبول</button>' +
       '<button class="mini no" onclick="decideTopupById(' + o.id + ',\'rejected\')">رفض</button></div></div>';
   }).join("") || '<div class="empty" style="padding:16px 0">لا طلبات شحن معلّقة</div>';
-  
+
   const wds = orders.filter(function(o){ return o.type === "withdraw" && o.status === "pending"; });
   const wl = document.getElementById("withdrawList");
   if(wl) wl.innerHTML = wds.map(function(o){
@@ -1937,6 +1937,7 @@ function renderAdminTables(){
       '<button class="mini no" onclick="decideTopupById(' + o.id + ',\'rejected\')">رفض</button></div></div>';
   }).join("") || '<div class="empty" style="padding:16px 0">لا طلبات استرجاع معلّقة</div>';
 
+  renderPromoTable();
   fillProductSelect();
   if(isOwner() && document.body.classList.contains("admin")) fillAdminsPanel();
 }
