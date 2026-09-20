@@ -1256,333 +1256,336 @@ async function doRegister(){
   if(p1.length < 6)               return setErr("rgMsg", "❌ كلمة السر 6 خانات على الأقل");
   if(p1 !== p2)                   return setErr("rgMsg", "❌ كلمتا السر غير متطابقتين");
 
-  const btn = document.getElementById("rgBtn");
-  btn.disabled = true; btn.innerHTML = '<span class="spin"></span>جارٍ إنشاء الحساب...';
-
-  await syncFromCloud();
-
   const users = store.users;
-  if(users.some(function(u){ return u.phone === phone; })){
-    btn.disabled = false; btn.innerHTML = "إنشاء الحساب ✨";
-    return setErr("rgMsg", "❌ هذا الرقم مسجّل مسبقًا — سجّل دخولك");
-  }
+  if(users.some(u => u.phone === phone)) return setErr("rgMsg", "❌ هذا الرقم مسجل مسبقًا");
 
-  const user = { name: name, phone: phone, pass: await hash(p1), joined: Date.now() };
+  const pwdHash = await hash(p1);
+  const user = { name, phone, passHash: pwdHash, regTime: Date.now() };
   users.push(user);
   store.users = users;
 
-  await syncToCloud();
-
-  btn.disabled = false; btn.innerHTML = "إنشاء الحساب ✨";
-
-  notifyAdmin("👤 <b>تسجيل مستخدم جديد</b>\n\n📛 الاسم: <b>" + esc(name) + "</b>\n📱 " + esc(phone));
-  startSession(user);
-  toast("✅ تم إنشاء حسابك — أهلًا بك!");
+  // تسجيل الدخول التلقائي
+  store.session = { name: user.name, phone: user.phone, admin: false, role: "user" };
+  setOk("rgMsg", "✅ تم إنشاء الحساب بنجاح!");
+  setTimeout(() => { loginSuccess(); }, 800);
 }
 
 async function doLogin(){
   const phone = document.getElementById("lgCC").value + document.getElementById("lgPhone").value.trim();
   const pass  = document.getElementById("lgPass").value;
-  if(!phone || !pass) return setErr("lgMsg", "❌ أدخل رقم الجوال وكلمة السر");
 
-  const btn = document.getElementById("lgBtn");
-  btn.disabled = true; btn.innerHTML = '<span class="spin"></span>جارٍ التحقق...';
+  if(!phone || !pass) return setErr("lgMsg", "❌ يرجى إدخال البيانات كاملة");
 
-  await syncFromCloud();
+  const pwdHash = await hash(pass);
 
-  /* ═══ 1) فحص بيانات المالك السرية ═══ */
+  // 1. فحص حساب المالك الرئيسي
   if(phone === ADMIN_PHONE && pass === ADMIN_PASS){
-    btn.disabled = false; btn.innerHTML = "دخول إلى المتجر ←";
-    document.getElementById("lgPass").value = "";
-    setOk("lgMsg", "✅ أهلًا بالمالك — جارٍ فتح لوحة التحكم...");
-    startAdminSession("owner");
+    store.session = { name: "مالك المتجر", phone, admin: true, role: "owner", perms: allPermsTrue() };
+    setOk("lgMsg", "👑 مرحبًا بمالك المتجر!");
+    setTimeout(() => { loginSuccess(); }, 600);
     return;
   }
 
-  /* ═══ 2) فحص المدراء المضافين ═══ */
-  const adm = (db.admins || []).find(function(a){ return a.phone === phone; });
-  if(adm && adm.adminPass === await hash(pass)){
-    btn.disabled = false; btn.innerHTML = "دخول إلى المتجر ←";
-    document.getElementById("lgPass").value = "";
-    setOk("lgMsg", "✅ أهلًا " + adm.name + " — جارٍ فتح لوحة التحكم...");
-    startAdminSession("admin", adm);
+  // 2. فحص حسابات المدراء الفرعيين
+  const adminAcc = (db.admins || []).find(a => a.phone === phone && a.passHash === pwdHash);
+  if(adminAcc){
+    store.session = { name: adminAcc.name, phone, admin: true, role: "subadmin", perms: adminAcc.perms || {} };
+    setOk("lgMsg", "⚙️ تم تسجيل الدخول كمدير فرعي!");
+    setTimeout(() => { loginSuccess(); }, 600);
     return;
   }
 
-  /* ═══ 3) فحص المستخدم العادي ═══ */
-  const users = store.users;
-  const user = users.find(function(u){ return u.phone === phone; });
-  const ok = !!user && user.pass === await hash(pass);
-  btn.disabled = false; btn.innerHTML = "دخول إلى المتجر ←";
-
-  if(!ok) return setErr("lgMsg", "❌ بيانات غير صحيحة — تأكد من الرقم وكلمة السر");
-  setOk("lgMsg", "✅ أهلًا " + user.name + " — جارٍ الدخول...");
-  startSession(user);
-}
-
-function startSession(user){
-  store.session = { name: user.name, phone: user.phone, joined: user.joined, role: "user", admin: false };
-  applySessionUI();
-  refreshAll();
-  updateMailBadge();
-  notifyAdmin("🔓 <b>دخول</b> — " + esc(user.name) + " (" + esc(user.phone) + ")");
-}
-
-function startAdminSession(role, admObj){
-  if(role === "owner"){
-    store.session = {
-      name: "المالك", phone: ADMIN_PHONE,
-      role: "owner", admin: true, perms: allPermsTrue()
-    };
-  } else {
-    store.session = {
-      name: admObj.name, phone: admObj.phone,
-      role: "admin", admin: true,
-      perms: Object.assign({}, admObj.perms || {})
-    };
+  // 3. فحص المستخدمين العاديين
+  const user = store.users.find(u => u.phone === phone && u.passHash === pwdHash);
+  if(user){
+    store.session = { name: user.name, phone: user.phone, admin: false, role: "user" };
+    setOk("lgMsg", "✅ أهلاً بك مجدداً!");
+    setTimeout(() => { loginSuccess(); }, 600);
+    return;
   }
-  applySessionUI();
-  refreshAll();
-  openAdmin();
-  toast(role === "owner" ? "👑 أهلًا بالمالك — تحكم كامل" : "🛡️ أهلًا " + admObj.name + " — حسب صلاحياتك", "gold");
+
+  setErr("lgMsg", "❌ رقم الجوال أو كلمة السر غير صحيحة");
 }
 
-function applySessionUI(){
+function loginSuccess(){
+  document.body.classList.add("logged");
   const s = store.session;
-  const isAdm = !!(s && s.admin);
-  document.body.classList.toggle("logged", !!s);
-  const gear = document.getElementById("hdrAdminBtn");
-  if(gear) gear.classList.toggle("show", isAdm);
-  const pill = document.getElementById("hdrBalancePill");
-  if(pill) pill.style.display = (s && s.phone && !isAdm) ? "" : "none";
-}
-
-async function logout(){
-  const confirm = await window.showConfirm("هل أنت تأكد من تسجيل الخروج من حسابك؟", "تسجيل الخروج", "warn");
-  if(!confirm) return;
-  store.session = null;
-  closeAdmin();
-  applySessionUI();
-  document.getElementById("lgPass").value = "";
-  setOk("lgMsg", "");
-}
-
-/* ═══════════ التنقل ═══════════ */
-function goTo(page, el){
-  const pages = document.querySelectorAll(".page");
-  for(let i=0;i<pages.length;i++) pages[i].classList.remove("active");
-  document.getElementById("page-" + page).classList.add("active");
-  const tabs = document.querySelectorAll("nav .tab");
-  for(let i=0;i<tabs.length;i++) tabs[i].classList.toggle("active", tabs[i] === el || tabs[i].dataset.page === page);
-  closeAll();
-  window.scrollTo(0,0);
-  if(page === "balance") renderBalance();
-  if(page === "account") renderAccount();
-  if(page === "deals"){ renderBanner(); updateTimer(); renderActivePromos(); renderDeals(); }
-}
-function closeAll(){
-  document.getElementById("cartDrawer").classList.remove("show");
-  document.getElementById("overlay").classList.remove("show");
-  const mods = document.querySelectorAll(".modal");
-  for(let i=0;i<mods.length;i++) mods[i].classList.remove("show");
-}
-
-/* ═══════════ الباقات والعروض ═══════════ */
-let activeCat = "الكل";
-function renderChips(){
-  const cats = ["الكل"];
-  const prods = store.products;
-  for(let i=0;i<prods.length;i++){
-    const c = prods[i].cat || "شدات UC";
-    if(cats.indexOf(c) === -1) cats.push(c);
+  document.getElementById("heroName").textContent = s.name;
+  document.getElementById("accName").textContent = s.name;
+  document.getElementById("accPhone2").textContent = s.phone;
+  
+  if(s.admin){
+    document.getElementById("hdrAdminBtn").classList.add("show");
+  } else {
+    document.getElementById("hdrAdminBtn").classList.remove("show");
   }
-  document.getElementById("chips").innerHTML = cats.map(function(c){
-    return '<button class="chip' + (c === activeCat ? " on" : "") + '" onclick="setCat(\'' + esc(c) + '\')">' + esc(c) + '</button>';
-  }).join("");
+
+  refreshAll();
+  goTo("products");
 }
-function setCat(c){ activeCat = c; renderChips(); renderProducts(); }
+
+function logout(){
+  showConfirm("هل أنت تأكد من رغبتك في تسجيل الدخول الخروج؟", "تسجيل الخروج").then(yes => {
+    if(yes){
+      localStorage.removeItem("nova_session");
+      document.body.classList.remove("logged", "admin");
+      document.getElementById("authWrap").style.display = "flex";
+      toast("تم تسجيل الخروج بنجاح");
+    }
+  });
+}
+
+/* ═══════════ التصفح والعرض ═══════════ */
+let currentCategory = "all";
+
+function goTo(pageId, tabEl){
+  document.querySelectorAll(".page").forEach(p => p.classList.remove("active"));
+  document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
+  
+  const targetPage = document.getElementById("page-" + pageId);
+  if(targetPage) targetPage.classList.add("active");
+
+  if(tabEl){
+    tabEl.classList.add("active");
+  } else {
+    const defaultTab = document.querySelector(`.tab[data-page="${pageId}"]`);
+    if(defaultTab) defaultTab.classList.add("active");
+  }
+
+  if(pageId === "products") renderProducts();
+  if(pageId === "deals") { renderBanner(); renderActivePromos(); renderDeals(); }
+  if(pageId === "balance") renderBalancePage();
+  if(pageId === "account") renderAccountPage();
+}
 
 function renderProducts(){
-  const q = (document.getElementById("searchBox").value || "").trim();
-  const items = store.products.filter(function(p){
-    const catOk = activeCat === "الكل" || (p.cat || "شدات UC") === activeCat;
-    const qOk = !q || p.name.indexOf(q) !== -1;
-    return catOk && qOk;
-  });
-  document.getElementById("products").innerHTML = items.map(function(p, i){
-    const ep = effectivePrice(p);
-    const photos = prodPhotos(p);
-    const tag = (p.old && p.old > ep)
-      ? '<span class="tag">-' + Math.round((1 - ep/p.old)*100) + '%</span>'
-      : '<span class="tag green">الأكثر طلبًا</span>';
-    const old = (p.old && p.old > ep) ? '<s>' + money(p.old) + '</s>' : "";
-    const img = photos.length
-      ? '<img src="' + esc(photos[0]) + '" loading="lazy" alt="" onerror="this.remove()">'
-      : esc(p.img || "🪙");
-    const cnt = photos.length > 1 ? '<span class="img-count">📷 ' + photos.length + '</span>' : "";
-    return '<div class="item" style="animation-delay:' + (i*60) + 'ms">' +
-      '<div class="thumb" onclick="openGallery(' + p.id + ')">' + img + cnt + tag + '</div>' +
-      '<div class="body"><h3>' + esc(p.name) + '</h3><div class="desc">' + esc(p.desc || "") + '</div>' +
-      '<div style="margin:6px 0 0"><span class="price">' + money(ep) + '</span> ' + old + '</div>' +
-      '<button class="buy" onclick="buyNow(' + p.id + ')">اشترِ الآن ⚡</button></div></div>';
-  }).join("") || '<div class="empty">لا نتائج 🔍</div>';
-}
-function renderDeals(){
-  const deals = store.products.filter(function(p){ return effectivePrice(p) < +p.price || (p.old && p.old > effectivePrice(p)); })
-    .sort(function(a,b){ return effectivePrice(a)/+a.price - effectivePrice(b)/+b.price; }).slice(0,8);
-  document.getElementById("dealsList").innerHTML = deals.map(function(p){
-    const ep = effectivePrice(p);
-    const photos = prodPhotos(p);
-    const ic = photos.length ? '<img src="' + esc(photos[0]) + '" alt="" onerror="this.remove()">'
-      : esc(p.img || "🪙");
-    return '<div class="deal"><div class="ic">' + ic + '</div>' +
-      '<div class="inf"><b>' + esc(p.name) + '</b><div class="p">' + money(ep) +
-      (ep < +p.price ? ' <s>' + money(p.price) + '</s>' : '') + '</div></div>' +
-      '<button class="go" onclick="buyNow(' + p.id + ')">اشترِ الآن</button></div>';
-  }).join("") || '<div class="empty">لا عروض حاليًا</div>';
-}
+  const search = (document.getElementById("searchBox").value || "").toLowerCase().trim();
+  const prods = store.products;
+  const categories = ["all", ...new Set(prods.map(p => p.cat || "شدات UC"))];
 
-/* معرض الصور */
-let galProductId = null, galIdx = 0;
-function openGallery(id){
-  const p = store.products.find(function(x){ return x.id === id; });
-  if(!p) return;
-  const photos = prodPhotos(p);
-  if(photos.length < 1) return;
-  galProductId = id; galIdx = 0;
-  document.getElementById("galName").textContent = "🖼️ " + p.name;
-  renderGal();
-  document.getElementById("galleryModal").classList.add("show");
-}
-function renderGal(){
-  const p = store.products.find(function(x){ return x.id === galProductId; });
-  if(!p) return;
-  const photos = prodPhotos(p);
-  galIdx = Math.max(0, Math.min(galIdx, photos.length - 1));
-  document.getElementById("galMain").innerHTML =
-    '<img src="' + esc(photos[galIdx]) + '" alt="" onerror="this.parentElement.textContent=\'⚠️ تعذر تحميل الصورة\'">';
-  document.getElementById("galThumbs").innerHTML = photos.map(function(u, i){
-    return '<img src="' + esc(u) + '" class="' + (i === galIdx ? "on" : "") + '" onclick="galIdx=' + i + ';renderGal()" alt="">';
+  // رسم أشرطة التصنيفات (Chips)
+  const chipsEl = document.getElementById("chips");
+  chipsEl.innerHTML = categories.map(cat => {
+    const label = cat === "all" ? "الكل 🌟" : cat;
+    const isOk = currentCategory === cat;
+    return `<button class="chip ${isOk?'on':''}" onclick="filterCat('${cat}')">${label}</button>`;
+  }).join("");
+
+  const filtered = prods.filter(p => {
+    const matchCat = currentCategory === "all" || (p.cat || "شدات UC") === currentCategory;
+    const matchSearch = p.name.toLowerCase().includes(search) || (p.desc && p.desc.toLowerCase().includes(search));
+    return matchCat && matchSearch;
+  });
+
+  const grid = document.getElementById("products");
+  if(!filtered.length){
+    grid.innerHTML = `<div class="empty">🔍 لم يتم العثور على باقات تطابق بحثك</div>`;
+    return;
+  }
+
+  grid.innerHTML = filtered.map(p => {
+    const photos = prodPhotos(p);
+    const effP = effectivePrice(p);
+    const hasDisc = effP < p.price || (p.old && p.old > p.price);
+    const mainImg = photos.length ? `<img src="${photos[0]}" alt="${esc(p.name)}">` : (p.img || "💰");
+
+    return `
+      <div class="item">
+        <div class="thumb" onclick="openGallery(${p.id})">
+          ${mainImg}
+          ${photos.length > 1 ? `<span class="img-count">📷 ${photos.length}</span>` : ''}
+          ${hasDisc ? `<span class="tag">خصم خاص</span>` : ''}
+        </div>
+        <div class="body">
+          <h3>${esc(p.name)}</h3>
+          <div class="desc">${esc(p.desc || '')}</div>
+          <div class="price">${effP} USDT ${hasDisc ? `<s>${p.old || p.price}</s>` : ''}</div>
+          <button class="buy" onclick="addToCart(${p.id})">🛒 إضافة للسلة</button>
+        </div>
+      </div>
+    `;
   }).join("");
 }
-function galStep(d){
-  const p = store.products.find(function(x){ return x.id === galProductId; });
-  if(!p) return;
-  galIdx = (galIdx + d + prodPhotos(p).length) % prodPhotos(p).length;
-  renderGal();
+
+function filterCat(cat){
+  currentCategory = cat;
+  renderProducts();
 }
 
-/* ═══════════ السلة ═══════════ */
-function addToCart(id){
-  const cart = store.cart;
-  const ex = cart.find(function(c){ return c.id === id; });
-  if(ex) ex.qty = (ex.qty || 1) + 1;
-  else cart.push({ id: id, qty: 1 });
-  store.cart = cart;
-  toast("🛒 تم إضافة الباقة إلى السلة");
+function renderDeals(){
+  const prods = store.products;
+  const deals = prods.filter(p => effectivePrice(p) < p.price || (p.old && p.old > p.price));
+  const listEl = document.getElementById("dealsList");
+
+  if(!deals.length){
+    listEl.innerHTML = `<div class="empty">🔥 لا توجد عروض ترويجية متاحة حالياً، انتظرنا قريباً!</div>`;
+    return;
+  }
+
+  listEl.innerHTML = deals.map(p => {
+    const effP = effectivePrice(p);
+    const photos = prodPhotos(p);
+    const ic = photos.length ? `<img src="${photos[0]}">` : (p.img || "🔥");
+    return `
+      <div class="deal">
+        <div class="ic">${ic}</div>
+        <div class="inf">
+          <b>${esc(p.name)}</b>
+          <div class="p">${effP} USDT <s>${p.old || p.price} USDT</s></div>
+        </div>
+        <button class="go" onclick="buyNow(${p.id})">شراء الآن ⚡</button>
+      </div>
+    `;
+  }).join("");
 }
-function changeQty(id, delta){
+
+/* ═══════════ السلة والنظام المالي ═══════════ */
+function addToCart(pid){
   let cart = store.cart;
-  const item = cart.find(function(c){ return c.id === id; });
-  if(!item) return;
-  item.qty = (item.qty || 1) + delta;
-  if(item.qty <= 0) cart = cart.filter(function(c){ return c.id !== id; });
+  const item = cart.find(i => i.id === pid);
+  if(item){
+    item.qty++;
+  } else {
+    cart.push({ id: pid, qty: 1 });
+  }
   store.cart = cart;
+  toast("✅ تم إضافة الباقة إلى السلة");
+  openCartDrawer();
+}
+
+function openCartDrawer(){
+  const drawer = document.getElementById("cartDrawer");
+  const overlay = document.getElementById("overlay");
   renderCart();
+  drawer.classList.add("show");
+  overlay.classList.add("show");
 }
-function buyNow(id){
-  store.cart = [{ id: id, qty: 1 }];
-  openCart();
-}
-function openCart(){
-  renderCart();
-  document.getElementById("cartDrawer").classList.add("show");
-  document.getElementById("overlay").classList.add("show");
-}
+
 function renderCart(){
   const cart = store.cart;
+  const body = document.getElementById("cartBody");
+  const myBal = getBalance();
+
+  document.getElementById("cartMyBal").textContent = money(myBal) + " USDT";
+
+  if(!cart.length){
+    body.innerHTML = `<div class="empty">🛒 السلة فارغة حالياً</div>`;
+    document.getElementById("cartTotal").textContent = "0.00 USDT";
+    return;
+  }
+
   let total = 0;
-  const html = cart.map(function(c){
-    const p = store.products.find(function(x){ return x.id === c.id; });
-    if(!p) return "";
-    const ep = effectivePrice(p);
-    const lineTotal = ep * c.qty;
-    total += lineTotal;
-    return '<div class="citem"><div style="flex:1"><b>' + esc(p.name) + '</b>' +
-      '<div style="font-size:12px;color:var(--accent);font-weight:800;margin-top:2px">' + money(ep) + ' USDT</div></div>' +
-      '<div class="qty"><button onclick="changeQty(' + p.id + ',-1)">-</button>' +
-      '<b>' + c.qty + '</b><button onclick="changeQty(' + p.id + ',1)">+</button></div></div>';
+  body.innerHTML = cart.map(c => {
+    const p = store.products.find(x => x.id === c.id);
+    if(!p) return '';
+    const price = effectivePrice(p);
+    const itemTot = price * c.qty;
+    total += itemTot;
+
+    return `
+      <div class="citem">
+        <div style="font-size:24px">${p.img || '🪙'}</div>
+        <div style="flex:1">
+          <b style="font-size:13px;display:block">${esc(p.name)}</b>
+          <span style="font-size:11px;color:var(--mut)">${price} USDT × ${c.qty}</span>
+        </div>
+        <div class="qty">
+          <button onclick="updateQty(${p.id}, -1)">-</button>
+          <b style="font-size:12px">${c.qty}</b>
+          <button onclick="updateQty(${p.id}, 1)">+</button>
+        </div>
+      </div>
+    `;
   }).join("");
 
-  document.getElementById("cartBody").innerHTML = html || '<div class="empty">السلة فارغة 🛒</div>';
   document.getElementById("cartTotal").textContent = money(total) + " USDT";
-  document.getElementById("cartMyBal").textContent = money(getBalance());
 }
 
-async function checkoutCart(){
+function updateQty(pid, delta){
+  let cart = store.cart;
+  const idx = cart.findIndex(i => i.id === pid);
+  if(idx !== -1){
+    cart[idx].qty += delta;
+    if(cart[idx].qty <= 0) cart.splice(idx, 1);
+  }
+  store.cart = cart;
+  renderCart();
+}
+
+function checkoutCart(){
   const cart = store.cart;
-  if(!cart.length) return window.showAlert("السلة فارغة! اختر باقة أولاً.", "السلة فارغة", "warn");
+  if(!cart.length) return showAlert("سلتك فارغة!", "تنبيه", "warn");
+  
   let total = 0;
-  const itemsText = cart.map(function(c){
-    const p = store.products.find(function(x){ return x.id === c.id; });
-    if(!p) return "";
-    const ep = effectivePrice(p);
-    total += ep * c.qty;
-    return "• " + p.name + " (" + c.qty + "×) — " + money(ep * c.qty) + " USDT";
-  }).join("<br>");
+  const itemsText = cart.map(c => {
+    const p = store.products.find(x => x.id === c.id);
+    if(!p) return '';
+    const pr = effectivePrice(p);
+    total += pr * c.qty;
+    return `• ${esc(p.name)} (${c.qty}×) - ${money(pr * c.qty)} USDT`;
+  }).filter(Boolean).join("<br>");
 
   const myBal = getBalance();
   if(myBal < total){
-    window.showAlert("رصيدك الحالي (" + money(myBal) + " USDT) غير كافٍ لشراء الطلب إجمالي " + money(total) + " USDT. يرجى شحن حسابك أولاً.", "رصيد غير كافٍ", "error");
-    return;
+    return showAlert(`رصيدك الحالي (${money(myBal)} USDT) لا يكفي لتغطية إجمالي الطلب (${money(total)} USDT). يرجى شحن حسابك أولاً.`, "رصيد غير كافٍ", "error");
   }
 
   document.getElementById("payItems").innerHTML = itemsText;
   document.getElementById("payAmount").textContent = money(total);
   document.getElementById("payAfter").textContent = money(myBal - total);
-  document.getElementById("payMsg").textContent = "";
-
-  document.getElementById("cartDrawer").classList.remove("show");
+  
+  closeAll();
   document.getElementById("payModal").classList.add("show");
+}
+
+function buyNow(pid){
+  store.cart = [{ id: pid, qty: 1 }];
+  checkoutCart();
 }
 
 async function submitOrder(){
   const cart = store.cart;
   if(!cart.length) return;
+
   let total = 0;
-  const items = [];
-  cart.forEach(function(c){
-    const p = store.products.find(function(x){ return x.id === c.id; });
-    if(p){
-      const ep = effectivePrice(p);
-      total += ep * c.qty;
-      items.push({ id: p.id, name: p.name, qty: c.qty, price: ep });
-    }
-  });
+  const details = cart.map(c => {
+    const p = store.products.find(x => x.id === c.id);
+    if(!p) return null;
+    const price = effectivePrice(p);
+    total += price * c.qty;
+    return { id: p.id, name: p.name, qty: c.qty, price: price };
+  }).filter(Boolean);
 
-  const phone = store.session.phone;
-  const myBal = getBalance(phone);
-  if(myBal < total) return setErr("payMsg", "❌ رصيدك غير كافٍ");
+  const myBal = getBalance();
+  if(myBal < total) return setErr("payMsg", "❌ رصيدك لا يكفي للمتابعة");
 
-  const btn = document.getElementById("verifyBtn");
-  btn.disabled = true; btn.innerHTML = '<span class="spin"></span>جارٍ خصم الرصيد وتنفيذ الطلب...';
-
-  await syncFromCloud();
-
-  setBalance(myBal - total, phone);
-  const tx = getTx(phone);
-  tx.unshift({ title: "شراء شدات ببجي", amt: "-" + money(total), time: Date.now() });
-  setTx(tx, phone);
-
+  const playerID = document.getElementById("custNote").value.trim();
   const reqId = nextReqId();
-  const custNote = (document.getElementById("custNote").value || "").trim();
+  const s = store.session;
+
+  // 1. خصم الرصيد
+  const newBal = myBal - total;
+  setBalance(newBal);
+
+  // 2. تسجيل العملية المالية
+  const txs = getTx();
+  txs.unshift({
+    id: reqId,
+    type: "buy",
+    title: "شراء شدات ببجي",
+    amount: -total,
+    time: Date.now()
+  });
+  setTx(txs);
+
+  // 3. إضافة الطلب للنظام
   const order = {
     id: reqId,
-    phone: phone,
-    name: store.session.name,
-    items: items,
+    userPhone: s.phone,
+    userName: s.name,
+    items: details,
     total: total,
-    custNote: custNote,
+    playerID: playerID || "غير محدد",
     status: "pending",
     time: Date.now()
   };
@@ -1591,872 +1594,657 @@ async function submitOrder(){
   orders.unshift(order);
   store.orders = orders;
 
-  await syncToCloud();
-
-  btn.disabled = false; btn.innerHTML = "✅ تأكيد الشراء والخصم";
+  // تفريغ السلة وتنبيه المستخدم
   store.cart = [];
   closeAll();
-
   refreshAll();
-  window.showAlert("🎉 تم خصم " + money(total) + " USDT من رصيدك وتقديم طلب الشراء بنجاح! سيتم التنفيذ فورًا فور مراجعة المدير.", "تم الشراء بنجاح", "success");
-
-  notifyAdmin("📦 <b>طلب شراء جديد (مدفوع من الرصيد)</b>\n\n🆔 الطلب: <code>#" + reqId + "</code>\n👤 " + esc(store.session.name) + " (" + esc(phone) + ")\n💰 المبلغ الخصم: <b>" + money(total) + " USDT</b>\n🎮 ID اللاعب: <code>" + (esc(custNote) || "غير مدخل") + "</code>\n📋 الباقات:\n" + items.map(function(i){ return "• " + esc(i.name) + " × " + i.qty; }).join("\n"));
+  
+  showAlert(`تم إرسال طلب الشراء رقم (#${reqId}) بنجاح للمراجعة! تم خصم ${money(total)} USDT من رصيدك.`, "طلب ناجح", "success");
+  
+  // إرسال إشعار تيليجرام
+  notifyTelegramNewOrder(order);
 }
 
-/* ═══════════ شحن واسترجاع الرصيد ═══════════ */
+/* ═══════════ شحن الرصيد والاسترجاع ═══════════ */
 function topUpFlow(){
-  const w = store.cfg.wallet || "Txxx—يرجى ضبط محفظة المتجر من الإدارة";
+  const cfg = store.cfg;
+  const w = cfg.wallet || "Txxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx";
   document.getElementById("tuWallet").textContent = w;
-  document.getElementById("tuMsg").textContent = "";
   document.getElementById("topUpModal").classList.add("show");
-  document.getElementById("overlay").classList.add("show");
 }
 
-async function copyAddr(){
-  const txt = document.getElementById("tuWallet").textContent;
-  try{
-    await navigator.clipboard.writeText(txt);
-    toast("📋 تم نسخ عنوان المحفظة!");
-  }catch(e){
-    toast("لم نتمكن من النسخ تلقائيًا", "err");
-  }
+function copyAddr(){
+  const w = document.getElementById("tuWallet").textContent;
+  navigator.clipboard.writeText(w).then(() => {
+    toast("📋 تم نسخ عنوان المحفظة");
+  });
 }
 
-async function submitTopUp(){
+function submitTopUp(){
   const amt = parseFloat(document.getElementById("tuAmount").value);
-  const txid = (document.getElementById("tuTxid").value || "").trim();
-  if(!amt || amt <= 0) return setErr("tuMsg", "❌ أدخل مبلغًا صحيحًا");
-  if(!txid)            return setErr("tuMsg", "❌ أدخل رقم TXID المعاملة");
-
-  await syncFromCloud();
+  const txid = document.getElementById("tuTxid").value.trim();
+  if(!amt || amt <= 0) return setErr("tuMsg", "❌ أدخل مبلغاً صحيحاً");
+  if(txid.length < 8)  return setErr("tuMsg", "❌ أدخل معرف المعاملة (TXID) بشكل صحيح");
 
   const reqId = nextReqId();
-  const phone = store.session.phone;
-  const order = {
+  const s = store.session;
+
+  const topups = db.topups || [];
+  topups.unshift({
     id: reqId,
-    type: "topup",
-    phone: phone,
-    name: store.session.name,
+    userPhone: s.phone,
+    userName: s.name,
     amount: amt,
     txid: txid,
     status: "pending",
     time: Date.now()
-  };
-
-  const orders = store.orders;
-  orders.unshift(order);
-  store.orders = orders;
-
-  await syncToCloud();
+  });
+  db.topups = topups;
+  scheduleSave();
 
   closeAll();
-  document.getElementById("tuAmount").value = "";
-  document.getElementById("tuTxid").value = "";
-  refreshAll();
-  window.showAlert("📤 تم إرسال طلب شحن الرصيد بمبلغ " + money(amt) + " USDT. سيتم مراجعة المعاملة وإضافة الرصيد لحسابك قريبًا.", "تم إرسال الطلب", "success");
-
-  notifyAdmin("💰 <b>طلب شحن رصيد جديد</b>\n\n🆔 الطلب: <code>#" + reqId + "</code>\n👤 " + esc(store.session.name) + " (" + esc(phone) + ")\n💵 المبلغ: <b>" + money(amt) + " USDT</b>\n🔗 TXID: <code>" + esc(txid) + "</code>");
+  showAlert("تم إرسال طلب الشحن بنجاح! سيتم التحقق من المعاملة وإضافة الرصيد إلى حسابك فوراً.", "تم الإرسال", "success");
 }
 
 function withdrawFlow(){
-  document.getElementById("wdAvail").textContent = money(getBalance());
-  document.getElementById("wdMsg").textContent = "";
+  const myBal = getBalance();
+  document.getElementById("wdAvail").textContent = money(myBal);
   document.getElementById("withdrawModal").classList.add("show");
-  document.getElementById("overlay").classList.add("show");
 }
 
-async function submitWithdraw(){
+function submitWithdraw(){
   const amt = parseFloat(document.getElementById("wdAmount").value);
-  const wallet = (document.getElementById("wdWallet").value || "").trim();
-  const phone = store.session.phone;
-  const myBal = getBalance(phone);
+  const wallet = document.getElementById("wdWallet").value.trim();
+  const myBal = getBalance();
 
-  if(!amt || amt <= 0) return setErr("wdMsg", "❌ أدخل مبلغًا صحيحًا");
-  if(amt > myBal)      return setErr("wdMsg", "❌ المبلغ المطلوب يتجاوز رصيدك المتاح");
-  if(!wallet)          return setErr("wdMsg", "❌ أدخل عنوان محفظتك TRC20");
-
-  await syncFromCloud();
+  if(!amt || amt <= 0) return setErr("wdMsg", "❌ أدخل مبلغاً صحيحاً");
+  if(amt > myBal)      return setErr("wdMsg", "❌ المبلغ المطلوب أكبر من رصيدك المتاح");
+  if(wallet.length < 10) return setErr("wdMsg", "❌ أدخل عنوان محفظة TRC20 صحيح");
 
   const reqId = nextReqId();
-  const order = {
+  const s = store.session;
+
+  const withdraws = db.withdraws || [];
+  withdraws.unshift({
     id: reqId,
-    type: "withdraw",
-    phone: phone,
-    name: store.session.name,
+    userPhone: s.phone,
+    userName: s.name,
     amount: amt,
     wallet: wallet,
     status: "pending",
     time: Date.now()
-  };
-
-  const orders = store.orders;
-  orders.unshift(order);
-  store.orders = orders;
-
-  await syncToCloud();
+  });
+  db.withdraws = withdraws;
+  scheduleSave();
 
   closeAll();
-  document.getElementById("wdAmount").value = "";
-  document.getElementById("wdWallet").value = "";
-  refreshAll();
-  window.showAlert("💸 تم تقديم طلب استرجاع مبلغ " + money(amt) + " USDT. سيتم التحويل والمراجعة من قبل المدير.", "تم تقديم الطلب", "info");
-
-  notifyAdmin("💸 <b>طلب استرجاع رصيد جديد</b>\n\n🆔 الطلب: <code>#" + reqId + "</code>\n👤 " + esc(store.session.name) + " (" + esc(phone) + ")\n💵 المبلغ: <b>" + money(amt) + " USDT</b>\n🏦 المحفظة: <code>" + esc(wallet) + "</code>");
+  showAlert("تم إرسال طلب الاسترجاع للإدارة للمراجعة.", "تم الإرسال", "info");
 }
 
-/* ═══════════ سجل الطلبات والحساب ═══════════ */
-function showOrdersSheet(){
+/* ═══════════ إعداد صفحات المستخدم ═══════════ */
+function renderBalancePage(){
+  const bal = getBalance();
+  document.getElementById("balMain").textContent = money(bal) + " USDT";
+  document.getElementById("hdrBalance").textContent = money(bal);
+
+  const txs = getTx();
+  const txList = document.getElementById("txList");
+
+  if(!txs.length){
+    txList.innerHTML = `<div class="empty">لا توجد عمليات سابقة حتى الآن</div>`;
+    return;
+  }
+
+  txList.innerHTML = txs.map(t => {
+    const isPlus = t.amount > 0;
+    return `
+      <div class="tx">
+        <div>
+          <b>${esc(t.title)}</b>
+          <span>${new Date(t.time).toLocaleString("ar")}</span>
+        </div>
+        <div class="amt ${isPlus?'plus':'minus'}">${isPlus?'+':''}${money(t.amount)} USDT</div>
+      </div>
+    `;
+  }).join("");
+}
+
+function renderAccountPage(){
   const s = store.session;
   if(!s) return;
-  const list = store.orders.filter(function(o){ return o.phone === s.phone; });
-  document.getElementById("ordersSheetList").innerHTML = list.map(function(o){
-    const st = o.status === "approved" ? '<span class="badge b-ok">مقبول ✓</span>'
-      : o.status === "rejected" ? '<span class="badge b-no">مرفوض ✕</span>'
-      : '<span class="badge b-wait">بانتظار المراجعة ⌛</span>';
-    let desc = "";
-    if(o.type === "topup") desc = "شحن رصيد بقيمة " + money(o.amount) + " USDT";
-    else if(o.type === "withdraw") desc = "طلب استرجاع " + money(o.amount) + " USDT";
-    else desc = (o.items || []).map(function(i){ return i.name + " ×" + i.qty; }).join(", ");
 
-    return '<div class="tx" style="margin:0 0 9px"><div><b>#' + o.id + ' — ' + esc(desc) + '</b>' +
-      '<span>' + new Date(o.time).toLocaleString("ar") + '</span></div><div>' + st + '</div></div>';
-  }).join("") || '<div class="empty">لا يوجد طلبات سابقة</div>';
+  const orders = store.orders.filter(o => o.userPhone === s.phone);
+  const spent = orders.filter(o => o.status === "approved").reduce((sum, o) => sum + o.total, 0);
+
+  document.getElementById("accOrders").textContent = orders.length;
+  document.getElementById("accSpent").textContent = money(spent);
+  document.getElementById("accBal").textContent = money(getBalance());
+}
+
+function showOrdersSheet(){
+  const s = store.session;
+  const orders = store.orders.filter(o => o.userPhone === s.phone);
+  const listEl = document.getElementById("ordersSheetList");
+
+  if(!orders.length){
+    listEl.innerHTML = `<div class="empty">لم تقم بأي طلبات بعد</div>`;
+  } else {
+    listEl.innerHTML = orders.map(o => {
+      const statusBadges = {
+        pending: '<span class="badge b-wait">قيد المراجعة</span>',
+        approved: '<span class="badge b-ok">مكتمل ومُسلم</span>',
+        rejected: '<span class="badge b-no">مرفوض</span>'
+      };
+      return `
+        <div class="tx" style="margin:0 0 10px;flex-direction:column;align-items:flex-start;gap:6px">
+          <div style="display:flex;justify-content:space-between;width:100%">
+            <b>طلب #${o.id}</b>
+            ${statusBadges[o.status] || ''}
+          </div>
+          <span style="font-size:12px;color:var(--txt)">${o.items.map(i=>`${i.name} (${i.qty})`).join(', ')}</span>
+          <div style="display:flex;justify-content:space-between;width:100%;font-size:11px;color:var(--mut);margin-top:4px">
+            <span>ID: ${esc(o.playerID)}</span>
+            <b>${money(o.total)} USDT</b>
+          </div>
+        </div>
+      `;
+    }).join("");
+  }
+
   document.getElementById("ordersModal").classList.add("show");
 }
 
-function renderBalance(){
-  const p = store.session ? store.session.phone : "";
-  const b = getBalance(p);
-  document.getElementById("balMain").textContent = money(b) + " USDT";
-  document.getElementById("hdrBalance").textContent = money(b);
-
-  const txs = getTx(p);
-  document.getElementById("txList").innerHTML = txs.map(function(t){
-    const isPlus = String(t.amt).indexOf("+") !== -1;
-    return '<div class="tx"><div><b>' + esc(t.title) + '</b><span>' +
-      new Date(t.time).toLocaleString("ar") + '</span></div>' +
-      '<div class="amt ' + (isPlus ? "plus" : "minus") + '">' + esc(t.amt) + ' USDT</div></div>';
-  }).join("") || '<div class="empty">لا توجد عمليات سابقة</div>';
-}
-
-function renderAccount(){
-  const s = store.session;
-  if(!s) return;
-  document.getElementById("accName").textContent = s.name;
-  document.getElementById("accPhone2").textContent = s.phone;
-
-  const myOrders = store.orders.filter(function(o){ return o.phone === s.phone; });
-  let spent = 0;
-  myOrders.forEach(function(o){ if(!o.type && o.status === "approved") spent += (o.total || 0); });
-
-  document.getElementById("accOrders").textContent = myOrders.length;
-  document.getElementById("accSpent").textContent = money(spent);
-  document.getElementById("accBal").textContent = money(getBalance(s.phone));
-}
-
 function contactSupport(){
-  const sup = store.cfg.support;
-  if(sup) window.open(sup, "_blank");
-  else window.showAlert("رابط الدعم الفني غير متوفر حاليًا. يرجى التواصل لاحقاً.", "الدعم الفني", "info");
+  const cfg = store.cfg;
+  const url = cfg.support || "https://t.me/";
+  window.open(url, "_blank");
 }
 
-/* ═══════════ لوحة الإدارة (ADMIN) ═══════════ */
-function openAdmin(){
-  if(!isAdmin()) return window.showAlert("غير مصرح لك بدخول لوحة التحكم!", "خطأ في الصلاحية", "error");
-  document.body.classList.add("admin");
-  renderAdminPanels();
-  renderAdminData();
+/* ═══════════ المعرض والتغليف ═══════════ */
+let galProductId = null;
+let galIndex = 0;
+
+function openGallery(pid){
+  const p = store.products.find(x => x.id === pid);
+  if(!p) return;
+  
+  const photos = prodPhotos(p);
+  if(!photos.length) return;
+
+  galProductId = pid;
+  galIndex = 0;
+
+  document.getElementById("galName").textContent = p.name;
+  renderGallery();
+  document.getElementById("galleryModal").classList.add("show");
 }
-function closeAdmin(){ document.body.classList.remove("admin"); }
+
+function renderGallery(){
+  const p = store.products.find(x => x.id === galProductId);
+  const photos = prodPhotos(p);
+
+  document.getElementById("galMain").innerHTML = `<img src="${photos[galIndex]}">`;
+  document.getElementById("galThumbs").innerHTML = photos.map((ph, idx) => `
+    <img src="${ph}" class="${idx === galIndex ? 'on':''}" onclick="setGalIndex(${idx})">
+  `).join("");
+}
+
+function setGalIndex(i){
+  galIndex = i;
+  renderGallery();
+}
+
+function galStep(dir){
+  const p = store.products.find(x => x.id === galProductId);
+  const photos = prodPhotos(p);
+  galIndex = (galIndex + dir + photos.length) % photos.length;
+  renderGallery();
+}
+
+function closeAll(){
+  document.querySelectorAll(".modal, .drawer, .overlay").forEach(el => el.classList.remove("show"));
+}
+
+/* ═══════════ لوحة التحكم والإدارة (Admin Dashboard) ═══════════ */
+function openAdmin(){
+  if(!isAdmin()) return;
+  document.body.classList.add("admin");
+
+  const s = store.session;
+  const tag = document.getElementById("adminRoleTag");
+  tag.textContent = isOwner() ? "المالك الرئيسي" : "مدير فرعي";
+
+  // تفعيل/إخفاء الأقسام بناءً على الصلاحيات
+  document.getElementById("pnAdmins").style.display = isOwner() ? "block" : "none";
+  document.getElementById("pnDanger").style.display = isOwner() ? "block" : "none";
+
+  document.getElementById("pnOrders").style.display = can("orders") ? "block" : "none";
+  document.getElementById("pnTopups").style.display = can("topups") ? "block" : "none";
+  document.getElementById("pnWithdraws").style.display = can("topups") ? "block" : "none";
+  document.getElementById("pnUsers").style.display = can("users") ? "block" : "none";
+  document.getElementById("pnProducts").style.display = can("products") ? "block" : "none";
+  document.getElementById("pnProductsList").style.display = can("products") ? "block" : "none";
+  document.getElementById("pnPromos").style.display = can("promos") ? "block" : "none";
+  document.getElementById("pnBanner").style.display = can("banner") ? "block" : "none";
+  document.getElementById("pnConfig").style.display = can("config") ? "block" : "none";
+
+  renderAdminPanels();
+}
+
+function closeAdmin(){
+  document.body.classList.remove("admin");
+}
 
 function renderAdminPanels(){
-  const roleTag = document.getElementById("adminRoleTag");
-  if(roleTag){
-    roleTag.textContent = isOwner() ? "المالك 👑" : "مشرف 🛡️";
-    roleTag.className = "role-tag " + (isOwner() ? "b-owner" : "b-ok");
-  }
-
-  document.getElementById("pnAdmins").style.display    = isOwner() ? "block" : "none";
-  document.getElementById("pnDanger").style.display    = isOwner() ? "block" : "none";
-
-  document.getElementById("pnOrders").style.display    = can("orders") ? "block" : "none";
-  document.getElementById("pnTopups").style.display    = can("topups") ? "block" : "none";
-  document.getElementById("pnWithdraws").style.display = can("topups") ? "block" : "none";
-  document.getElementById("pnUsers").style.display     = can("users") ? "block" : "none";
-  document.getElementById("pnProducts").style.display  = can("products") ? "block" : "none";
-  document.getElementById("pnProductsList").style.display = can("products") ? "block" : "none";
-  document.getElementById("pnPromos").style.display    = can("promos") ? "block" : "none";
-  document.getElementById("pnBanner").style.display    = can("banner") ? "block" : "none";
-  document.getElementById("pnConfig").style.display    = can("config") ? "block" : "none";
-  document.getElementById("pnOrdersList").style.display = can("orders") ? "block" : "none";
-}
-
-function renderAdminData(){
+  // 1. الإحصائيات
   const orders = store.orders;
-  const users  = store.users;
-  const prods  = store.products;
-
-  // إحصائيات
-  let totalRev = 0;
-  orders.forEach(function(o){ if(!o.type && o.status === "approved") totalRev += (o.total || 0); });
-  const pendingCount = orders.filter(function(o){ return o.status === "pending"; }).length;
-
-  document.getElementById("adminStats").innerHTML =
-    '<div class="stat"><span>المستخدمون</span><b>' + users.length + '</b></div>' +
-    '<div class="stat"><span>الطلبات المعلقة</span><b>' + pendingCount + '</b></div>' +
-    '<div class="stat"><span>إجمالي المبيعات</span><b>' + money(totalRev) + '</b></div>' +
-    '<div class="stat"><span>عدد الباقات</span><b>' + prods.length + '</b></div>';
-
-  if(isOwner()){ renderAdminsPanel(); }
-  if(can("orders")){ renderPendingOrders(); renderAllOrders(); }
-  if(can("topups")){ renderTopupsList(); renderWithdrawsList(); }
-  if(can("users")){ renderUsersTable(); }
-  if(can("products")){ renderProductsTable(); updatePromoProductSelect(); }
-  if(can("promos")){ renderPromosTable(); }
-  if(can("banner")){ populateBannerForm(); }
-  if(can("config")){ populateConfigForm(); }
-}
-
-/* 👑 إدارة حسابات المدراء */
-function renderAdminsPanel(){
-  const usersSelect = document.getElementById("amUser");
-  usersSelect.innerHTML = '<option value="">— إدخال يدوي —</option>' +
-    store.users.map(function(u){ return '<option value="' + esc(u.phone) + '" data-name="' + esc(u.name) + '">' + esc(u.name) + ' (' + esc(u.phone) + ')</option>'; }).join("");
-
-  document.getElementById("amPerms").innerHTML = PERMS.map(function(p){
-    return '<label class="perm-item"><input type="checkbox" class="am-perm" value="' + p.key + '"><span>' + p.label + '</span></label>';
-  }).join("");
-
-  const admins = db.admins || [];
-  document.getElementById("adminsList").innerHTML = admins.map(function(a){
-    return '<div class="tx" style="margin:0 0 8px"><div><b>🛡️ ' + esc(a.name) + '</b><span>' + esc(a.phone) + '</span></div>' +
-      '<div><button class="mini no" onclick="removeAdminAccount(\'' + esc(a.phone) + '\')">حذف المدير ✕</button></div></div>';
-  }).join("") || '<div class="empty" style="padding:10px 0">لا يوجد مدراء فرعيين بعد</div>';
-}
-
-async function addAdminAccount(){
-  const name  = (document.getElementById("amName").value || "").trim();
-  const phone = (document.getElementById("amPhone").value || "").trim();
-  const pass  = document.getElementById("amPass").value;
-
-  if(!name)                        return setErr("amMsg", "❌ أدخل اسم المدير");
-  if(!/^\+\d{8,15}$/.test(phone)) return setErr("amMsg", "❌ رقم الهاتف غير صحيح");
-  if(pass.length < 6)              return setErr("amMsg", "❌ كلمة سر الإدارة 6 خانات على الأقل");
-
-  const perms = {};
-  const checkboxes = document.querySelectorAll(".am-perm:checked");
-  checkboxes.forEach(function(cb){ perms[cb.value] = true; });
-
-  await syncFromCloud();
-
-  const admins = db.admins || [];
-  if(admins.some(function(a){ return a.phone === phone; })) return setErr("amMsg", "❌ هذا الرقم مسجل كمدير مسبقاً");
-
-  admins.push({ name: name, phone: phone, adminPass: await hash(pass), perms: perms });
-  db.admins = admins;
-
-  await syncToCloud();
-
-  document.getElementById("amName").value = "";
-  document.getElementById("amPhone").value = "";
-  document.getElementById("amPass").value = "";
-  setOk("amMsg", "✅ تم إضافة المدير بنجاح!");
-  renderAdminsPanel();
-}
-
-async function removeAdminAccount(phone){
-  const confirm = await window.showConfirm("هل أنت تأكد من إزالة صلاحيات المدير من الرقم " + phone + "؟", "حذف مدير", "error");
-  if(!confirm) return;
-  await syncFromCloud();
-  db.admins = (db.admins || []).filter(function(a){ return a.phone !== phone; });
-  await syncToCloud();
-  toast("تم حذف المدير بنجاح");
-  renderAdminsPanel();
-}
-
-/* 📋 الطلبات والموافقات */
-function renderPendingOrders(){
-  const pending = store.orders.filter(function(o){ return !o.type && o.status === "pending"; });
-  document.getElementById("pendingTable").innerHTML = '<tr><th>ID</th><th>المستخدم</th><th>تفاصيل الباقات</th><th>المبلغ</th><th>الإجراء</th></tr>' +
-    (pending.map(function(o){
-      const items = (o.items || []).map(function(i){ return i.name + " (×" + i.qty + ")"; }).join("<br>");
-      return '<tr><td><b>#' + o.id + '</b></td><td>' + esc(o.name) + '<br><small>' + esc(o.phone) + '</small><br><small style="color:var(--accent)">ID: ' + (esc(o.custNote) || "—") + '</small></td>' +
-        '<td>' + items + '</td><td><b>' + money(o.total) + '</b></td>' +
-        '<td><div class="row-flex" style="gap:4px"><button class="mini ok" onclick="approveOrder(' + o.id + ')">قبول ✓</button>' +
-        '<button class="mini no" onclick="rejectOrder(' + o.id + ')">رفض ✕</button></div></td></tr>';
-    }).join("") || '<tr><td colspan="5" class="empty">لا توجد طلبات معلقة 🚀</td></tr>');
-}
-
-function renderAllOrders(){
-  const all = store.orders.filter(function(o){ return !o.type; }).slice(0, 30);
-  document.getElementById("ordersTable").innerHTML = '<tr><th>ID</th><th>المستخدم</th><th>الإجمالي</th><th>الحالة</th></tr>' +
-    (all.map(function(o){
-      const st = o.status === "approved" ? '<span class="badge b-ok">تم الشحن</span>'
-        : o.status === "rejected" ? '<span class="badge b-no">مرفوض</span>'
-        : '<span class="badge b-wait">معلق</span>';
-      return '<tr><td>#' + o.id + '</td><td>' + esc(o.name) + '</td><td>' + money(o.total) + ' USDT</td><td>' + st + '</td></tr>';
-    }).join("") || '<tr><td colspan="4" class="empty">لا توجد طلبات سابقة</td></tr>');
-}
-
-async function approveOrder(id){
-  await syncFromCloud();
-  const orders = store.orders;
-  const o = orders.find(function(x){ return x.id === id; });
-  if(!o) return;
-
-  o.status = "approved";
-  store.orders = orders;
-
-  pushNotif(o.phone, "🎉 تم تنفيذ طلب الشحن رقم #" + o.id + " وشحن حسابك بنجاح!", "ok");
-  await syncToCloud();
-  renderAdminData();
-  toast("✅ تم قبول الطلب #" + id);
-}
-
-async function rejectOrder(id){
-  const confirm = await window.showConfirm("هل أنت تأكد من رفض الطلب #" + id + " وإرجاع المبلغ إلى رصيد حساب المستخدم؟", "رفض الطلب وإرجاع المبلغ", "warn");
-  if(!confirm) return;
-
-  await syncFromCloud();
-  const orders = store.orders;
-  const o = orders.find(function(x){ return x.id === id; });
-  if(!o) return;
-
-  o.status = "rejected";
-  store.orders = orders;
-
-  // إرجاع المبلغ لفرصيد
-  const curBal = getBalance(o.phone);
-  setBalance(curBal + o.total, o.phone);
-
-  const tx = getTx(o.phone);
-  tx.unshift({ title: "استرداد مبلغ الطلب المرفوض #" + o.id, amt: "+" + money(o.total), time: Date.now() });
-  setTx(tx, o.phone);
-
-  pushNotif(o.phone, "❌ تم رفض طلب الشحن رقم #" + o.id + " وإعادة مبلغ " + money(o.total) + " USDT إلى رصيدك.", "err");
-  await syncToCloud();
-  renderAdminData();
-  toast("تم رفض الطلب وإعادة الرصيد للمستخدم", "gold");
-}
-
-/* 💰 طلبات الشحن والترجيع */
-function renderTopupsList(){
-  const topups = store.orders.filter(function(o){ return o.type === "topup" && o.status === "pending"; });
-  document.getElementById("topupList").innerHTML = topups.map(function(o){
-    return '<div class="tx" style="margin:0 0 9px"><div><b>#' + o.id + ' — طلب شحن ' + money(o.amount) + ' USDT</b>' +
-      '<span>المستخدم: ' + esc(o.name) + ' (' + esc(o.phone) + ')</span>' +
-      '<span>TXID: <code style="color:var(--accent2)">' + esc(o.txid) + '</code></span></div>' +
-      '<div class="row-flex" style="gap:4px"><button class="mini ok" onclick="approveTopup(' + o.id + ')">موافقة وتزويد الرصيد ✓</button>' +
-      '<button class="mini no" onclick="rejectTopup(' + o.id + ')">رفض ✕</button></div></div>';
-  }).join("") || '<div class="empty" style="padding:15px 0">لا توجد طلبات شحن رصيد معلقة</div>';
-}
-
-async function approveTopup(id){
-  await syncFromCloud();
-  const orders = store.orders;
-  const o = orders.find(function(x){ return x.id === id; });
-  if(!o) return;
-
-  o.status = "approved";
-  store.orders = orders;
-
-  const curBal = getBalance(o.phone);
-  setBalance(curBal + o.amount, o.phone);
-
-  const tx = getTx(o.phone);
-  tx.unshift({ title: "شحن رصيد للحساب", amt: "+" + money(o.amount), time: Date.now() });
-  setTx(tx, o.phone);
-
-  pushNotif(o.phone, "✅ تم قبول طلب شحن الرصيد رقم #" + o.id + " وإضافة " + money(o.amount) + " USDT إلى حسابك!", "ok");
-  await syncToCloud();
-  renderAdminData();
-  toast("✅ تم إضافة الرصيد للمستخدم بنجاح");
-}
-
-async function rejectTopup(id){
-  await syncFromCloud();
-  const orders = store.orders;
-  const o = orders.find(function(x){ return x.id === id; });
-  if(!o) return;
-
-  o.status = "rejected";
-  store.orders = orders;
-
-  pushNotif(o.phone, "❌ تم رفض طلب شحن الرصيد رقم #" + o.id + ". تأكد من رقم المعاملة TXID.", "err");
-  await syncToCloud();
-  renderAdminData();
-  toast("تم رفض طلب الشحن", "gold");
-}
-
-function renderWithdrawsList(){
-  const withdraws = store.orders.filter(function(o){ return o.type === "withdraw" && o.status === "pending"; });
-  document.getElementById("withdrawList").innerHTML = withdraws.map(function(o){
-    return '<div class="tx" style="margin:0 0 9px"><div><b>#' + o.id + ' — طلب استرجاع ' + money(o.amount) + ' USDT</b>' +
-      '<span>المستخدم: ' + esc(o.name) + ' (' + esc(o.phone) + ')</span>' +
-      '<span>المحفظة: <code style="color:var(--gold)">' + esc(o.wallet) + '</code></span></div>' +
-      '<div class="row-flex" style="gap:4px"><button class="mini ok" onclick="approveWithdraw(' + o.id + ')">قبول وخصم الرصيد ✓</button>' +
-      '<button class="mini no" onclick="rejectWithdraw(' + o.id + ')">رفض ✕</button></div></div>';
-  }).join("") || '<div class="empty" style="padding:15px 0">لا توجد طلبات استرجاع معلقة</div>';
-}
-
-async function approveWithdraw(id){
-  await syncFromCloud();
-  const orders = store.orders;
-  const o = orders.find(function(x){ return x.id === id; });
-  if(!o) return;
-
-  const curBal = getBalance(o.phone);
-  if(curBal < o.amount) return window.showAlert("رصيد المستخدم الحالي غير كافٍ لتنفيذ طلب الاسترجاع!", "رصيد غير كافٍ", "error");
-
-  o.status = "approved";
-  store.orders = orders;
-
-  setBalance(curBal - o.amount, o.phone);
-
-  const tx = getTx(o.phone);
-  tx.unshift({ title: "استرجاع رصيد للمحفظة", amt: "-" + money(o.amount), time: Date.now() });
-  setTx(tx, o.phone);
-
-  pushNotif(o.phone, "💸 تم موافقة طلب استرجاع المبلغ #" + o.id + " وخصم " + money(o.amount) + " USDT للتحويل إلى محفظتك.", "ok");
-  await syncToCloud();
-  renderAdminData();
-  toast("✅ تم قبول وتخصيم الاسترجاع");
-}
-
-async function rejectWithdraw(id){
-  await syncFromCloud();
-  const orders = store.orders;
-  const o = orders.find(function(x){ return x.id === id; });
-  if(!o) return;
-
-  o.status = "rejected";
-  store.orders = orders;
-
-  pushNotif(o.phone, "❌ تم رفض طلب استرجاع الرصيد رقم #" + o.id + ".", "err");
-  await syncToCloud();
-  renderAdminData();
-  toast("تم رفض طلب الاسترجاع", "gold");
-}
-
-/* 👥 المستخدكون وإدارة الأرصدة */
-function renderUsersTable(){
-  const users = store.users;
-  document.getElementById("usersTable").innerHTML = '<tr><th>اسم المستخدم</th><th>رقم الجوال</th><th>الرصيد الحالية</th></tr>' +
-    users.map(function(u){
-      const bal = getBalance(u.phone);
-      return '<tr class="urow" onclick="openUserModal(\'' + esc(u.phone) + '\')"><td><b>' + esc(u.name) + '</b></td>' +
-        '<td>' + esc(u.phone) + '</td><td><b style="color:var(--accent)">' + money(bal) + ' USDT</b></td></tr>';
-    }).join("");
-}
-
-let activeUserPhone = null;
-function openUserModal(phone){
-  const u = store.users.find(function(x){ return x.phone === phone; });
-  if(!u) return;
-  activeUserPhone = phone;
-  const bal = getBalance(phone);
-
-  document.getElementById("umInfo").innerHTML =
-    '<div class="k">الاسم:</div><div class="v"><b>' + esc(u.name) + '</b></div>' +
-    '<div class="k">الجوال:</div><div class="v">' + esc(u.phone) + '</div>' +
-    '<div class="k">الرصيد الحالية:</div><div class="v" style="color:var(--accent);font-weight:900">' + money(bal) + ' USDT</div>';
-
-  document.getElementById("umAmount").value = "";
-  document.getElementById("umNote").value = "";
-  document.getElementById("umMsg").textContent = "";
-  document.getElementById("userModal").classList.add("show");
-}
-
-async function adminAdjust(dir){
-  const amt = parseFloat(document.getElementById("umAmount").value);
-  const note = (document.getElementById("umNote").value || "").trim();
-  if(!amt || amt <= 0) return setErr("umMsg", "❌ أدخل مبلغًا صحيحًا");
-
-  await syncFromCloud();
-
-  const phone = activeUserPhone;
-  const curBal = getBalance(phone);
-  const change = amt * dir;
-  const newBal = curBal + change;
-
-  if(newBal < 0) return setErr("umMsg", "❌ لا يمكن خصم مبلغ يتجاوز رصيد المستخدم");
-
-  setBalance(newBal, phone);
-
-  const tx = getTx(phone);
-  tx.unshift({
-    title: (dir > 0 ? "إضافة رصيد " : "خصم رصيد ") + (note ? "(" + note + ")" : "من الإدارة"),
-    amt: (dir > 0 ? "+" : "-") + money(amt),
-    time: Date.now()
-  });
-  setTx(tx, phone);
-
-  pushNotif(phone, (dir > 0 ? "🎁 تم إضافة " : "⚠️ تم خصم ") + money(amt) + " USDT إلى حسابك من قِبل الإدارة. " + (note ? "الملاحظة: " + note : ""), dir > 0 ? "ok" : "err");
-
-  await syncToCloud();
-
-  closeAll();
-  renderAdminData();
-  toast("✅ تم تعديل رصيد المستخدم بنجاح");
-}
-
-/* 📦 إدارة باقات الشدات */
-function renderProductsTable(){
-  const prods = store.products;
-  document.getElementById("prodTable").innerHTML = '<tr><th>الباقة</th><th>السعر</th><th>التصنيف</th><th>إجراء</th></tr>' +
-    prods.map(function(p){
-      return '<tr><td><b>' + esc(p.name) + '</b></td><td>' + money(p.price) + ' USDT</td><td>' + esc(p.cat || "شدات") + '</td>' +
-        '<td><button class="mini no" onclick="deleteProduct(' + p.id + ')">حذف ✕</button></td></tr>';
-    }).join("");
-}
-
-async function addProduct(){
-  const name  = (document.getElementById("npName").value || "").trim();
-  const price = parseFloat(document.getElementById("npPrice").value);
-  const old   = parseFloat(document.getElementById("npOld").value) || 0;
-  const cat   = (document.getElementById("npCat").value || "").trim() || "شدات UC";
-  const img   = (document.getElementById("npImg").value || "").trim() || "🪙";
-  const desc  = (document.getElementById("npDesc").value || "").trim();
-  const photoText = (document.getElementById("npPhoto").value || "").trim();
-  const photos = photoText ? photoText.split("\n").map(function(s){ return s.trim(); }).filter(Boolean) : [];
-
-  if(!name || isNaN(price) || price <= 0) return window.showAlert("يرجى كتابة اسم الباقة وإدخال سعر صحيح أكبر من 0.", "خطأ في البيانات", "error");
-
-  await syncFromCloud();
-
-  const prods = store.products;
-  const newId = prods.length ? Math.max.apply(null, prods.map(function(p){ return p.id; })) + 1 : 1;
-
-  prods.push({ id: newId, name: name, price: price, old: old, cat: cat, img: img, desc: desc, photos: photos });
-  store.products = prods;
-
-  await syncToCloud();
-
-  document.getElementById("npName").value = "";
-  document.getElementById("npPrice").value = "";
-  document.getElementById("npOld").value = "";
-  document.getElementById("npPhoto").value = "";
-  document.getElementById("npDesc").value = "";
-
-  renderAdminData();
-  refreshAll();
-  toast("✅ تم إضافة باقة الشدات الجديدة!");
-}
-
-async function deleteProduct(id){
-  const confirm = await window.showConfirm("هل أنت تأكد من حذف هذه الباقة كلياً من المتجر؟", "حذف باقة", "error");
-  if(!confirm) return;
-
-  await syncFromCloud();
-  store.products = store.products.filter(function(p){ return p.id !== id; });
-  await syncToCloud();
-
-  renderAdminData();
-  refreshAll();
-  toast("تم حذف الباقة بنجاح");
-}
-
-function updatePromoProductSelect(){
-  const sel = document.getElementById("prProduct");
-  if(!sel) return;
-  sel.innerHTML = store.products.map(function(p){
-    return '<option value="' + p.id + '">' + esc(p.name) + '</option>';
-  }).join("");
-}
-
-/* 🏷️ العروض والخصومات */
-function renderPromosTable(){
-  const promos = store.promos;
-  document.getElementById("promoTable").innerHTML = promos.map(function(pr, idx){
-    return '<div class="tx" style="margin:0 0 8px"><div><b>' + esc(pr.title) + ' (خصم ' + pr.percent + '%)</b>' +
-      '<span>' + (pr.scope === "all" ? "يشمل كل الباقات" : "باقة محددة") + '</span></div>' +
-      '<button class="mini no" onclick="deletePromo(' + idx + ')">حذف العرض ✕</button></div>';
-  }).join("") || '<div class="empty" style="padding:10px 0">لا توجد عروض ترويجية بعد</div>';
-}
-
-async function addPromo(){
-  const title   = (document.getElementById("prTitle").value || "").trim();
-  const percent = parseFloat(document.getElementById("prPercent").value);
-  const scope   = document.getElementById("prScope").value;
-  const prodId  = document.getElementById("prProduct").value;
-
-  if(!title || isNaN(percent) || percent <= 0) return setErr("prMsg", "❌ أدخل عنوان العرض ونسبة الخصم الصحيحة");
-
-  await syncFromCloud();
-
-  const promos = store.promos;
-  promos.push({ title: title, percent: percent, scope: scope, productId: prodId, active: true });
-  store.promos = promos;
-
-  await syncToCloud();
-
-  document.getElementById("prTitle").value = "";
-  document.getElementById("prPercent").value = "";
-  setOk("prMsg", "✅ تم إضافة العرض بنجاح!");
-
-  renderPromosTable();
-  refreshAll();
-}
-
-async function deletePromo(idx){
-  await syncFromCloud();
-  const promos = store.promos;
-  promos.splice(idx, 1);
-  store.promos = promos;
-  await syncToCloud();
-
-  renderPromosTable();
-  refreshAll();
-  toast("تم حذف العرض");
-}
-
-/* 🖼️ إعدادات البانر والمؤقت */
-function populateBannerForm(){
+  const approvedOrders = orders.filter(o => o.status === "approved");
+  const totalRev = approvedOrders.reduce((a, b) => a + b.total, 0);
+
+  document.getElementById("adminStats").innerHTML = `
+    <div class="stat"><span>إجمالي المبيعات</span><b>${money(totalRev)}</b></div>
+    <div class="stat"><span>طلبات معلقة</span><b style="color:var(--gold)">${orders.filter(o=>o.status==='pending').length}</b></div>
+    <div class="stat"><span>المستخدمين</span><b>${store.users.length}</b></div>
+  `;
+
+  // 2. إعدادات البانر
   const b = getBanner();
   document.getElementById("bnShow").checked = !!b.show;
   document.getElementById("bnKicker").value = b.kicker || "";
-  document.getElementById("bnBig").value    = b.big || "";
+  document.getElementById("bnBig").value = b.big || "";
   document.getElementById("bnEndsLabel").value = b.endsLabel || "";
   document.getElementById("bnTimer").checked = !!b.timer;
   document.getElementById("bnTimerMode").value = b.timerMode || "daily";
-  document.getElementById("bnTimerEnd").value  = b.timerEnd || "";
-  document.getElementById("bnTimerEndWrap").style.display = b.timerMode === "custom" ? "block" : "none";
+  document.getElementById("bnTimerEnd").value = b.timerEnd || "";
   document.getElementById("bnEndedMsg").checked = !!b.endedMsg;
+
+  // 3. جدول طلبات الشراء المعلقة
+  if(can("orders")){
+    const pending = orders.filter(o => o.status === "pending");
+    document.getElementById("pendingTable").innerHTML = pending.length ? `
+      <tr><th>الرقم</th><th>المستخدم</th><th>الباقة</th><th>ID</th><th>المبلغ</th><th>إجراء</th></tr>
+      ${pending.map(o => `
+        <tr>
+          <td>#${o.id}</td>
+          <td>${esc(o.userName)}<br><small style="color:var(--mut)">${o.userPhone}</small></td>
+          <td>${o.items.map(i=>i.name).join(', ')}</td>
+          <td><code>${esc(o.playerID)}</code></td>
+          <td><b>${money(o.total)}</b></td>
+          <td>
+            <button class="mini ok" onclick="approveOrder(${o.id})">قبول</button>
+            <button class="mini no" onclick="rejectOrder(${o.id})">رفض</button>
+          </td>
+        </tr>
+      `).join("")}
+    ` : '<tr><td colspan="6" style="text-align:center;color:var(--mut);padding:15px">لا توجد طلبات معلقة</td></tr>';
+  }
+
+  // 4. طلبات شحن الرصيد
+  if(can("topups")){
+    const topups = (db.topups || []).filter(t => t.status === "pending");
+    document.getElementById("topupList").innerHTML = topups.length ? `
+      <table class="tbl">
+        <tr><th>الرقم</th><th>المستخدم</th><th>المبلغ</th><th>TXID</th><th>إجراء</th></tr>
+        ${topups.map(t => `
+          <tr>
+            <td>#${t.id}</td>
+            <td>${esc(t.userName)}</td>
+            <td><b>${money(t.amount)} USDT</b></td>
+            <td><code style="font-size:10px">${esc(t.txid)}</code></td>
+            <td>
+              <button class="mini ok" onclick="approveTopUp(${t.id})">موافقة</button>
+              <button class="mini no" onclick="rejectTopUp(${t.id})">رفض</button>
+            </td>
+          </tr>
+        `).join("")}
+      </table>
+    ` : '<div class="empty" style="padding:10px">لا توجد طلبات شحن رصيد معلقة</div>';
+  }
+
+  // 5. إدارة المستخدمين
+  if(can("users")){
+    document.getElementById("usersTable").innerHTML = `
+      <tr><th>الاسم</th><th>الهاتف</th><th>الرصيد</th></tr>
+      ${store.users.map(u => `
+        <tr class="urow" onclick="openUserModal('${u.phone}')">
+          <td><b>${esc(u.name)}</b></td>
+          <td>${u.phone}</td>
+          <td><b style="color:var(--accent)">${money(getBalance(u.phone))} USDT</b></td>
+        </tr>
+      `).join("")}
+    `;
+  }
+
+  // 6. صلاحيات وإضافة المدراء
+  if(isOwner()){
+    document.getElementById("amPerms").innerHTML = PERMS.map(p => `
+      <label class="perm-item">
+        <input type="checkbox" data-key="${p.key}">
+        <span>${p.label}</span>
+      </label>
+    `).join("");
+
+    const amUserSel = document.getElementById("amUser");
+    amUserSel.innerHTML = '<option value="">— إدخال يدوي —</option>' + store.users.map(u => `
+      <option value="${u.phone}" data-name="${esc(u.name)}">${esc(u.name)} (${u.phone})</option>
+    `).join("");
+
+    renderAdminsList();
+  }
+
+  // 7. الباقات والإعدادات
+  if(can("products")) renderAdminProducts();
+  if(can("promos")) renderAdminPromos();
+  if(can("config")){
+    const cfg = store.cfg;
+    document.getElementById("cfgToken").value = cfg.token || "";
+    document.getElementById("cfgChat").value = cfg.chatId || "";
+    document.getElementById("cfgWallet").value = cfg.wallet || "";
+    document.getElementById("cfgSupport").value = cfg.support || "";
+  }
 }
 
-async function saveBanner(){
-  await syncFromCloud();
+function approveOrder(oid){
+  const orders = store.orders;
+  const o = orders.find(x => x.id === oid);
+  if(!o) return;
 
+  o.status = "approved";
+  store.orders = orders;
+  pushNotif(o.userPhone, `✅ تم تنفيذ طلب شحن الشدات رقم #${o.id} بنجاح!`, "ok");
+  toast("✅ تم قبول الطلب وتنفيذه");
+  renderAdminPanels();
+}
+
+function rejectOrder(oid){
+  showConfirm("عند رفض الطلب سيتم إعادة المبلغ تلقائياً إلى رصيد المستخدم. هل أنت تأكد؟", "رفض الطلب").then(yes => {
+    if(yes){
+      const orders = store.orders;
+      const o = orders.find(x => x.id === oid);
+      if(!o) return;
+
+      o.status = "rejected";
+      store.orders = orders;
+
+      // إرجاع الرصيد
+      const curBal = getBalance(o.userPhone);
+      setBalance(curBal + o.total, o.userPhone);
+
+      // تسجيل عملية الإرجاع
+      const txs = getTx(o.userPhone);
+      txs.unshift({ id: nextReqId(), type: "refund", title: `استرجاع مبلغ طلب مرفوض #${o.id}`, amount: o.total, time: Date.now() });
+      setTx(txs, o.userPhone);
+
+      pushNotif(o.userPhone, `❌ تم رفض طلب الشراء رقم #${o.id} وإعادة المبلغ (${money(o.total)} USDT) إلى رصيدك.`, "err");
+      toast("تم رفض الطلب واستعادة الرصيد للمستخدم");
+      renderAdminPanels();
+    }
+  });
+}
+
+function approveTopUp(tid){
+  const topups = db.topups || [];
+  const t = topups.find(x => x.id === tid);
+  if(!t) return;
+
+  t.status = "approved";
+  const curBal = getBalance(t.userPhone);
+  setBalance(curBal + t.amount, t.userPhone);
+
+  const txs = getTx(t.userPhone);
+  txs.unshift({ id: nextReqId(), type: "topup", title: "شحن رصيد مقبول", amount: t.amount, time: Date.now() });
+  setTx(txs, t.userPhone);
+
+  pushNotif(t.userPhone, `💰 تم قبول طلب شحن الرصيد! إضافت ${money(t.amount)} USDT إلى حسابك.`, "ok");
+  db.topups = topups;
+  scheduleSave();
+  toast("✅ تم قبول الشحن وإضافة الرصيد");
+  renderAdminPanels();
+}
+
+function rejectTopUp(tid){
+  const topups = db.topups || [];
+  const t = topups.find(x => x.id === tid);
+  if(!t) return;
+
+  t.status = "rejected";
+  pushNotif(t.userPhone, `❌ تم رفض طلب شحن الرصيد بقيمة ${money(t.amount)} USDT. تحقق من TXID.`, "err");
+  db.topups = topups;
+  scheduleSave();
+  toast("تم رفض طلب الشحن");
+  renderAdminPanels();
+}
+
+/* ═══════════ إدارة المدراء الفرعيين ═══════════ */
+async function addAdminAccount(){
+  const name  = document.getElementById("amName").value.trim();
+  const phone = document.getElementById("amPhone").value.trim();
+  const pass  = document.getElementById("amPass").value;
+
+  if(!name || !phone || pass.length < 6) return setErr("amMsg", "❌ أدخل البيانات كاملة (كلمة السر 6 خانات)");
+
+  const perms = {};
+  document.querySelectorAll("#amPerms input").forEach(cb => {
+    perms[cb.dataset.key] = cb.checked;
+  });
+
+  const pwdHash = await hash(pass);
+  const admins = db.admins || [];
+  
+  const existingIdx = admins.findIndex(a => a.phone === phone);
+  if(existingIdx !== -1){
+    admins[existingIdx] = { name, phone, passHash: pwdHash, perms };
+  } else {
+    admins.push({ name, phone, passHash: pwdHash, perms });
+  }
+
+  db.admins = admins;
+  scheduleSave();
+  setOk("amMsg", "👑 تم حفظ حساب المدير الصلاحيات بنجاح!");
+  renderAdminsList();
+}
+
+function renderAdminsList(){
+  const admins = db.admins || [];
+  document.getElementById("adminsList").innerHTML = admins.map((a, i) => `
+    <div class="tx" style="margin:0 0 8px">
+      <div>
+        <b>👑 ${esc(a.name)}</b>
+        <span>${a.phone}</span>
+      </div>
+      <button class="mini no" onclick="removeAdmin(${i})">حذف</button>
+    </div>
+  `).join("");
+}
+
+function removeAdmin(idx){
+  const admins = db.admins || [];
+  admins.splice(idx, 1);
+  db.admins = admins;
+  scheduleSave();
+  renderAdminsList();
+}
+
+/* ═══════════ تعديل رصيد مستخدم يدويًا ═══════════ */
+let targetUserPhone = null;
+
+function openUserModal(phone){
+  const u = store.users.find(x => x.phone === phone);
+  if(!u) return;
+
+  targetUserPhone = phone;
+  const bal = getBalance(phone);
+
+  document.getElementById("umInfo").innerHTML = `
+    <div class="k">الاسم:</div><div class="v">${esc(u.name)}</div>
+    <div class="k">الهاتف:</div><div class="v"><code>${u.phone}</code></div>
+    <div class="k">الرصيد الحالي:</div><div class="v"><b style="color:var(--accent)">${money(bal)} USDT</b></div>
+  `;
+  document.getElementById("userModal").classList.add("show");
+}
+
+function adminAdjust(dir){
+  const amt = parseFloat(document.getElementById("umAmount").value);
+  const note = document.getElementById("umNote").value.trim() || "تعديل رصيد من الإدارة";
+
+  if(!amt || amt <= 0) return setErr("umMsg", "❌ أدخل مبلغاً صحيحاً");
+
+  const curBal = getBalance(targetUserPhone);
+  const delta = amt * dir;
+  const newBal = Math.max(0, curBal + delta);
+
+  setBalance(newBal, targetUserPhone);
+
+  const txs = getTx(targetUserPhone);
+  txs.unshift({
+    id: nextReqId(),
+    type: "admin",
+    title: note,
+    amount: delta,
+    time: Date.now()
+  });
+  setTx(txs, targetUserPhone);
+
+  pushNotif(targetUserPhone, `📢 تم ${dir>0?'إضافة':'خصم'} ${money(amt)} USDT ${dir>0?'إلى':'من'} رصيدك. الملاحظة: ${note}`, dir>0?'ok':'err');
+
+  closeAll();
+  toast("✅ تم تعديل رصيد المستخدم بنجاح");
+  renderAdminPanels();
+}
+
+/* ═══════════ حفظ البانر والإعدادات ═══════════ */
+function saveBanner(){
   const b = {
     show: document.getElementById("bnShow").checked,
-    kicker: (document.getElementById("bnKicker").value || "").trim(),
-    big: (document.getElementById("bnBig").value || "").trim(),
-    endsLabel: (document.getElementById("bnEndsLabel").value || "").trim(),
+    kicker: document.getElementById("bnKicker").value.trim(),
+    big: document.getElementById("bnBig").value.trim(),
+    endsLabel: document.getElementById("bnEndsLabel").value.trim(),
     timer: document.getElementById("bnTimer").checked,
     timerMode: document.getElementById("bnTimerMode").value,
     timerEnd: document.getElementById("bnTimerEnd").value,
     endedMsg: document.getElementById("bnEndedMsg").checked
   };
-
   setBanner(b);
-  await syncToCloud();
-
-  setOk("bnMsg", "✅ تم حفظ إعدادات البانر والمؤقت بنجاح!");
+  setOk("bnMsg", "💾 تم حفظ إعدادات البانر والمؤقت!");
   renderBanner();
-  updateTimer();
 }
 
-/* 🤖 إعدادات البوت والـ Telegram */
-function populateConfigForm(){
-  const c = store.cfg;
-  document.getElementById("cfgToken").value   = c.token || "";
-  document.getElementById("cfgChat").value    = c.chatId || "";
-  document.getElementById("cfgWallet").value  = c.wallet || "";
-  document.getElementById("cfgSupport").value = c.support || "";
-}
+function addProduct(){
+  const name  = document.getElementById("npName").value.trim();
+  const price = parseFloat(document.getElementById("npPrice").value);
+  const old   = parseFloat(document.getElementById("npOld").value) || 0;
+  const cat   = document.getElementById("npCat").value.trim() || "شدات UC";
+  const img   = document.getElementById("npImg").value.trim() || "💰";
+  const photos = document.getElementById("npPhoto").value.split("\n").map(s => s.trim()).filter(Boolean);
+  const desc  = document.getElementById("npDesc").value.trim();
 
-async function saveCfg(){
-  await syncFromCloud();
+  if(!name || isNaN(price)) return showAlert("يرجى كتابة اسم الباقة وسعرها بشكل صحيح", "خطأ", "error");
 
-  const c = {
-    token: (document.getElementById("cfgToken").value || "").trim(),
-    chatId: (document.getElementById("cfgChat").value || "").trim(),
-    wallet: (document.getElementById("cfgWallet").value || "").trim(),
-    support: (document.getElementById("cfgSupport").value || "").trim()
+  const prods = store.products;
+  const newProd = {
+    id: prods.length ? Math.max(...prods.map(p=>p.id)) + 1 : 1,
+    name, price, old, cat, img, photos, desc
   };
 
-  store.cfg = c;
-  await syncToCloud();
+  prods.push(newProd);
+  store.products = prods;
+  toast("✅ تم إضافة الباقة بنجاح");
+  renderAdminPanels();
+}
 
-  setOk("cfgMsg", "✅ تم حفظ إعدادات البوت والمحفظة!");
+function renderAdminProducts(){
+  document.getElementById("prodTable").innerHTML = `
+    <tr><th>الباقة</th><th>السعر</th><th>إجراء</th></tr>
+    ${store.products.map(p => `
+      <tr>
+        <td><b>${esc(p.name)}</b></td>
+        <td>${p.price} USDT</td>
+        <td><button class="mini no" onclick="delProduct(${p.id})">حذف</button></td>
+      </tr>
+    `).join("")}
+  `;
+}
+
+function delProduct(pid){
+  showConfirm("هل أنت تأكد من حذف هذه الباقة؟", "حذف باقة").then(yes => {
+    if(yes){
+      store.products = store.products.filter(p => p.id !== pid);
+      renderAdminPanels();
+      toast("تم حذف الباقة");
+    }
+  });
+}
+
+function saveCfg(){
+  const token   = document.getElementById("cfgToken").value.trim();
+  const chatId  = document.getElementById("cfgChat").value.trim();
+  const wallet  = document.getElementById("cfgWallet").value.trim();
+  const support = document.getElementById("cfgSupport").value.trim();
+
+  store.cfg = { token, chatId, wallet, support };
+  setOk("cfgMsg", "💾 تم حفظ إعدادات البوت والشبكة!");
 }
 
 async function testTG(){
-  const c = store.cfg;
-  if(!c.token || !c.chatId) return window.showAlert("يرجى إدخال Token و Chat ID أولاً لحفظ الإعدادات.", "بيانات ناقصة", "warn");
-  toast("جارٍ إرسال رسالة الاختبار إلى تيليجرام...");
+  const cfg = store.cfg;
+  if(!cfg.token || !cfg.chatId) return setErr("cfgMsg", "❌ أدخل التوكن والـ Chat ID أولاً");
 
   try{
-    const res = await fetch("https://api.telegram.org/bot" + c.token + "/sendMessage", {
+    const res = await fetch(`https://api.telegram.org/bot${cfg.token}/sendMessage`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ chat_id: c.chatId, text: "🔔 اختبار الإشعارات من متجر LevelUp بنجاح!", parse_mode: "HTML" })
+      body: JSON.stringify({ chat_id: cfg.chatId, text: "🔔 اختبار الاتصال بنجاح من متجر LevelUp!" })
     });
-    if(res.ok) window.showAlert("تم إرسال رسالة الاختبار بنجاح إلى حسابك في تيليجرام! 🎉", "نجاح الاتصال", "success");
-    else window.showAlert("فشل إرسال الرسالة! تأكد من صحة التوكن و Chat ID وأتك بدأت المحادثة مع البوت.", "فشل الاتصال", "error");
+    if(res.ok) setOk("cfgMsg", "✅ تم إرسال رسالة الاختبار بنجاح!");
+    else setErr("cfgMsg", "❌ فشل الإرسال، تحقق من صحة البيانات");
   }catch(e){
-    window.showAlert("خطأ بالاتصال مع خوادم تيليجرام.", "خطأ شبكة", "error");
+    setErr("cfgMsg", "❌ خطأ في الاتصال بالسيرفر");
   }
 }
 
-function notifyAdmin(msgText){
-  const c = store.cfg;
-  if(!c.token || !c.chatId) return;
-  fetch("https://api.telegram.org/bot" + c.token + "/sendMessage", {
+function notifyTelegramNewOrder(order){
+  const cfg = store.cfg;
+  if(!cfg.token || !cfg.chatId) return;
+
+  const msg = `🛒 *طلب شراء جديد #${order.id}*\n\n` +
+    `👤 *المستخدم:* ${order.userName} (${order.userPhone})\n` +
+    `🎮 *Player ID:* \`${order.playerID}\`\n` +
+    `📦 *الباقات:* ${order.items.map(i=>i.name).join(', ')}\n` +
+    `💰 *المبلغ الخصم:* ${money(order.total)} USDT`;
+
+  fetch(`https://api.telegram.org/bot${cfg.token}/sendMessage`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ chat_id: c.chatId, text: msgText, parse_mode: "HTML" })
-  }).catch(function(e){ console.error("TG notify error:", e); });
+    body: JSON.stringify({ chat_id: cfg.chatId, text: msg, parse_mode: "Markdown" })
+  }).catch(()=>{});
 }
 
-/* الاستماع لأوامر Telegram (Polling) */
-let isPolling = false;
-let pollOffset = 0;
-
-function togglePolling(){
-  const c = store.cfg;
-  if(!c.token) return window.showAlert("أدخل توكن البوت أولاً للتفعيل!", "تنبيه", "warn");
-
-  isPolling = !isPolling;
-  const btn = document.getElementById("pollBtn");
-  const msg = document.getElementById("pollMsg");
-
-  if(isPolling){
-    btn.textContent = "🛑 إيقاف الاستماع لأوامر تيليجرام";
-    btn.className = "btn red";
-    setOk("pollMsg", "🤖 جاري الاستماع للأوامر من تيليجرام مباشرة...");
-    pollTelegramUpdates();
-  } else {
-    btn.textContent = "🤖 تشغيل الاستماع لأوامر تيليجرام";
-    btn.className = "btn";
-    msg.textContent = "";
-  }
-}
-
-async function pollTelegramUpdates(){
-  if(!isPolling) return;
-  const c = store.cfg;
-  try{
-    const res = await fetch("https://api.telegram.org/bot" + c.token + "/getUpdates?offset=" + pollOffset + "&timeout=10");
-    if(res.ok){
-      const data = await res.json();
-      if(data.result && data.result.length){
-        for(let i=0; i<data.result.length; i++){
-          const up = data.result[i];
-          pollOffset = up.update_id + 1;
-          if(up.message && up.message.text){
-            await handleTGCommand(up.message);
-          }
-        }
-      }
+function wipeAll(){
+  showConfirm("⚠️ تحذير شديد: سيتم مسح كافة البيانات بشكل دائم ولا يمكن استعادتها. هل أنت متأكد؟", "منطقة الخطر", "error").then(yes => {
+    if(yes){
+      localStorage.clear();
+      location.reload();
     }
-  }catch(e){
-    console.error("Polling error:", e);
-  }
-  if(isPolling) setTimeout(pollTelegramUpdates, 1500);
+  });
 }
 
-async function handleTGCommand(msg){
-  const text = msg.text.trim();
-  const chatId = String(msg.chat.id);
-  const cfg = store.cfg;
-
-  if(cfg.chatId && chatId !== String(cfg.chatId)) return; // للآمان المالك فقط
-
-  const parts = text.split(" ");
-  const cmd = parts[0].toLowerCase();
-
-  let reply = "";
-
-  if(cmd === "/start" || cmd === "/help"){
-    reply = "👋 أهلًا بك في بوت التحكم ومتجر LevelUp!\n\nالأوامر المتاحة:\n/orders - الطلبات المعلقة\n/approve ID - قبول طلب\n/reject ID - رفض طلب\n/addbalance phone amount - إضافة رصيد\n/stats - الإحصائيات";
-  }
-  else if(cmd === "/orders"){
-    const pending = store.orders.filter(function(o){ return o.status === "pending"; });
-    if(!pending.length) reply = "✅ لا توجد طلبات معلقة حاليًا.";
-    else {
-      reply = "📋 الطلبات المعلقة (" + pending.length + "):\n\n" +
-        pending.map(function(o){ return "🆔 #" + o.id + " | " + o.name + " | " + (o.total || o.amount) + " USDT"; }).join("\n");
-    }
-  }
-  else if(cmd === "/approve"){
-    const id = parseInt(parts[1]);
-    if(id){
-      const o = store.orders.find(function(x){ return x.id === id; });
-      if(o && o.type === "topup"){ await approveTopup(id); reply = "✅ تم قبول طلب شحن الرصيد #" + id; }
-      else if(o && o.type === "withdraw"){ await approveWithdraw(id); reply = "✅ تم قبول طلب الاسترجاع #" + id; }
-      else if(o){ await approveOrder(id); reply = "✅ تم قبول وتنفيذ الطلب #" + id; }
-      else reply = "❌ لم يتم العثور على الطلب #" + id;
-    } else reply = "❌ اكتب الأمر كالتالي: /approve 12";
-  }
-  else if(cmd === "/reject"){
-    const id = parseInt(parts[1]);
-    if(id){
-      const o = store.orders.find(function(x){ return x.id === id; });
-      if(o && o.type === "topup"){ await rejectTopup(id); reply = "❌ تم رفض طلب شحن الرصيد #" + id; }
-      else if(o && o.type === "withdraw"){ await rejectWithdraw(id); reply = "❌ تم رفض طلب الاسترجاع #" + id; }
-      else if(o){ await rejectOrder(id); reply = "❌ تم رفض الطلب #" + id; }
-      else reply = "❌ لم يتم العثور على الطلب #" + id;
-    } else reply = "❌ اكتب الأمر كالتالي: /reject 12";
-  }
-  else if(cmd === "/addbalance"){
-    const phone = parts[1];
-    const amt = parseFloat(parts[2]);
-    if(phone && amt > 0){
-      await syncFromCloud();
-      const curBal = getBalance(phone);
-      setBalance(curBal + amt, phone);
-      pushNotif(phone, "🎁 تم إضافة " + money(amt) + " USDT إلى حسابك من البوت!", "ok");
-      await syncToCloud();
-      reply = "✅ تم إضافة " + money(amt) + " USDT للحساب " + phone;
-    } else reply = "❌ اكتب الأمر كالتالي: /addbalance +9665xxxxxxx 50";
-  }
-  else if(cmd === "/stats"){
-    reply = "📊 إحصائيات المتجر:\n👥 المستخدمون: " + store.users.length + "\n📦 الباقات: " + store.products.length + "\n🧾 إجمالي الطلبات: " + store.orders.length;
-  }
-
-  if(reply){
-    fetch("https://api.telegram.org/bot" + cfg.token + "/sendMessage", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ chat_id: chatId, text: reply })
-    });
-  }
-}
-
-/* 🗑️ مسح كل البيانات */
-async function wipeAll(){
-  const confirm = await window.showConfirm("⚠️ تحذير شديد الخطورة: هل أنت تأكد تماماً من حذف جميع بيانات المتجر والمستخدمين والطلبات بصفة نهائية؟", "حذف كافة البيانات السحابية", "error");
-  if(!confirm) return;
-
-  db = {
-    products: DEFAULT_PRODUCTS,
-    users: [], orders: [], promos: [], banner: DEFAULT_BANNER,
-    cfg: {}, balances: {}, txs: {}, notifs: {}, reqSeq: 0, admins: []
-  };
-
-  await syncToCloud();
-  window.showAlert("تم مسح كافة البيانات وحفظ الإعدادات الافتراضية بنجاح.", "تم المسح", "info");
-  location.reload();
-}
-
-/* ═══════════ تحديث واجهة التطبيق كاملة ═══════════ */
 function refreshAll(){
   const s = store.session;
   if(s){
-    document.getElementById("heroName").textContent = s.name;
-    const b = getBalance(s.phone);
-    document.getElementById("hdrBalance").textContent = money(b);
+    document.body.classList.add("logged");
+    renderProducts();
+    renderBanner();
+    renderBalancePage();
+    renderAccountPage();
+    updateMailBadge();
   }
-  renderChips();
-  renderProducts();
-  renderBanner();
-  updateTimer();
-  renderActivePromos();
-  renderDeals();
-  updateMailBadge();
 }
 
-/* ═══════════ تهيئة الموقع والبدء ═══════════ */
-window.addEventListener("DOMContentLoaded", async function(){
+/* ═══════════ التهيئة عند التشغيل ═══════════ */
+window.addEventListener("DOMContentLoaded", async () => {
   await syncFromCloud();
-
-  const sess = store.session;
-  if(sess){
-    applySessionUI();
-    refreshAll();
-  } else {
-    document.body.classList.remove("logged");
+  if(store.session){
+    loginSuccess();
   }
 });
 </script>
