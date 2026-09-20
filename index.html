@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="theme-color" content="#05070c">
-<title>NOVA Store — شدات ببجي موبايل</title>
+<title>LevelUp — شدات ببجي موبايل</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cpath d='M32 6 L58 32 L32 58 L6 32 Z' fill='none' stroke='%2300e5b0' stroke-width='4' stroke-linejoin='round'/%3E%3Ccircle cx='32' cy='32' r='6' fill='%2300e5b0'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800;900&display=swap" rel="stylesheet">
@@ -2280,7 +2280,7 @@ async function testTG(){
     const res = await fetch("https://api.telegram.org/bot" + c.token + "/sendMessage", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ chat_id: c.chatId, text: "🔔 اختبار الإشعارات من متجر NOVA Store بنجاح!", parse_mode: "HTML" })
+      body: JSON.stringify({ chat_id: c.chatId, text: "🔔 اختبار الإشعارات من متجر LevelUp بنجاح!", parse_mode: "HTML" })
     });
     if(res.ok) window.showAlert("تم إرسال رسالة الاختبار بنجاح إلى حسابك في تيليجرام! 🎉", "نجاح الاتصال", "success");
     else window.showAlert("فشل إرسال الرسالة! تأكد من صحة التوكن و Chat ID وأتك بدأت المحادثة مع البوت.", "فشل الاتصال", "error");
@@ -2359,7 +2359,7 @@ async function handleTGCommand(msg){
   let reply = "";
 
   if(cmd === "/start" || cmd === "/help"){
-    reply = "👋 أهلًا بك في بوت التحكم ومتجر NOVA Store!\n\nالأوامر المتاحة:\n/orders - الطلبات المعلقة\n/approve ID - قبول طلب\n/reject ID - رفض طلب\n/addbalance phone amount - إضافة رصيد\n/stats - الإحصائيات";
+    reply = "👋 أهلًا بك في بوت التحكم ومتجر LevelUp!\n\nالأوامر المتاحة:\n/orders - الطلبات المعلقة\n/approve ID - قبول طلب\n/reject ID - رفض طلب\n/addbalance phone amount - إضافة رصيد\n/stats - الإحصائيات";
   }
   else if(cmd === "/orders"){
     const pending = store.orders.filter(function(o){ return o.status === "pending"; });
