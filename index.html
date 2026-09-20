@@ -314,6 +314,22 @@ nav:before{content:"";position:absolute;top:-1px;left:20%;right:20%;height:1px;
 .addr:hover{background:rgba(0,229,176,.1);box-shadow:var(--glow)}
 .amt{text-align:center;font-size:32px;font-weight:900;margin:8px 0 14px;background:var(--grad-lux);-webkit-background-clip:text;
   background-clip:text;color:transparent}
+
+/* ═══ مودال التنبيهات الاحترافي البديل لـ ALERT ═══ */
+.custom-modal-wrap{position:fixed;inset:0;background:rgba(0,0,0,.82);backdrop-filter:blur(10px);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px;opacity:0;pointer-events:none;transition:opacity .3s var(--ease)}
+.custom-modal-wrap.show{opacity:1;pointer-events:auto}
+.custom-modal-card{width:100%;max-width:380px;background:rgba(16,23,36,.98);border:1px solid var(--line2);border-radius:26px;padding:26px 20px 22px;text-align:center;box-shadow:0 25px 70px rgba(0,0,0,.8);transform:scale(.88) translateY(20px);transition:transform .35s var(--ease);position:relative;overflow:hidden}
+.custom-modal-wrap.show .custom-modal-card{transform:scale(1) translateY(0)}
+.custom-modal-icon{width:64px;height:64px;border-radius:20px;margin:0 auto 16px;display:grid;place-items:center;font-size:30px;box-shadow:0 10px 25px rgba(0,0,0,.3)}
+.custom-modal-icon.info{background:rgba(0,163,255,.12);border:1px solid rgba(0,163,255,.3);color:var(--accent2)}
+.custom-modal-icon.success{background:rgba(0,229,176,.12);border:1px solid rgba(0,229,176,.3);color:var(--accent)}
+.custom-modal-icon.error{background:rgba(255,77,106,.12);border:1px solid rgba(255,77,106,.3);color:var(--danger)}
+.custom-modal-icon.warn{background:rgba(255,200,72,.12);border:1px solid rgba(255,200,72,.3);color:var(--gold)}
+.custom-modal-title{font-size:18px;font-weight:900;margin-bottom:8px;color:var(--txt)}
+.custom-modal-text{font-size:13.5px;color:var(--mut);line-height:1.7;margin-bottom:22px;word-break:break-word}
+.custom-modal-btns{display:flex;gap:10px}
+.custom-modal-btns button{flex:1;padding:12px}
+
 #toasts{position:fixed;top:16px;left:50%;transform:translateX(-50%);z-index:999;display:flex;flex-direction:column;gap:8px;width:min(92vw,380px)}
 .toast{background:rgba(16,23,36,.95);border:1px solid var(--line2);border-inline-start:4px solid var(--accent);border-radius:13px;
   padding:13px 16px;font-size:13px;font-weight:700;box-shadow:var(--shadow),0 0 20px rgba(0,229,176,.12);animation:tin .4s var(--ease)}
@@ -401,6 +417,18 @@ input[type="datetime-local"]{direction:ltr;text-align:left}
 <div class="starfield"></div>
 <div class="aurora a1"></div><div class="aurora a2"></div>
 <div id="toasts"></div>
+
+<!-- ⚡ مودال الاحترافي للتنبيهات والتأكيدات البديل لـ alert و confirm -->
+<div class="custom-modal-wrap" id="customModal">
+  <div class="custom-modal-card">
+    <div class="custom-modal-icon info" id="cmIcon">🔔</div>
+    <h3 class="custom-modal-title" id="cmTitle">تنبيه</h3>
+    <p class="custom-modal-text" id="cmText"></p>
+    <div class="custom-modal-btns" id="cmBtns">
+      <button class="btn" id="cmOkBtn">حسناً</button>
+    </div>
+  </div>
+</div>
 
 <!-- ⚡ قالب شعار النيون (SVG) — خط يبدأ من نقطة وينتهي برسم الأيقونة -->
 <svg width="0" height="0" style="position:absolute">
@@ -785,6 +813,71 @@ input[type="datetime-local"]{direction:ltr;text-align:left}
 
 <script>
 "use strict";
+
+/* ═══════════ محرك المودال الاحترافي التفاعلي البديل لـ ALERT و CONFIRM ═══════════ */
+function showCustomModal(options) {
+  return new Promise((resolve) => {
+    const modal = document.getElementById("customModal");
+    const iconEl = document.getElementById("cmIcon");
+    const titleEl = document.getElementById("cmTitle");
+    const textEl = document.getElementById("cmText");
+    const btnsEl = document.getElementById("cmBtns");
+
+    const type = options.type || "info"; // info, success, error, warn
+    const icons = { info: "🔔", success: "✅", error: "❌", warn: "⚠️" };
+    
+    iconEl.className = "custom-modal-icon " + type;
+    iconEl.textContent = options.icon || icons[type] || "🔔";
+    titleEl.textContent = options.title || "تنبيه";
+    textEl.textContent = options.text || "";
+
+    btnsEl.innerHTML = "";
+
+    if (options.confirm) {
+      // وضع التأكيد (Confirm)
+      const cancelBtn = document.createElement("button");
+      cancelBtn.className = "btn gray";
+      cancelBtn.textContent = options.cancelText || "إلغاء";
+      cancelBtn.onclick = () => {
+        modal.classList.remove("show");
+        resolve(false);
+      };
+
+      const confirmBtn = document.createElement("button");
+      confirmBtn.className = "btn " + (type === "error" ? "red" : type === "warn" ? "gold" : "");
+      confirmBtn.textContent = options.okText || "موافقة";
+      confirmBtn.onclick = () => {
+        modal.classList.remove("show");
+        resolve(true);
+      };
+
+      btnsEl.appendChild(cancelBtn);
+      btnsEl.appendChild(confirmBtn);
+    } else {
+      // وضع التنبيه العادي (Alert)
+      const okBtn = document.createElement("button");
+      okBtn.className = "btn";
+      okBtn.textContent = options.okText || "حسناً";
+      okBtn.onclick = () => {
+        modal.classList.remove("show");
+        resolve(true);
+      };
+      btnsEl.appendChild(okBtn);
+    }
+
+    modal.classList.add("show");
+  });
+}
+
+// استبدال دالة Alert العالمية بمودال احترافي
+window.showAlert = function(msg, title = "تنبيه", type = "info") {
+  return showCustomModal({ title, text: msg, type });
+};
+
+// استبدال دالة Confirm العالمية بمودال احترافي
+window.showConfirm = function(msg, title = "تأكيد الإجراء", type = "warn") {
+  return showCustomModal({ title, text: msg, type, confirm: true });
+};
 
 /* ═══════════ إعدادات JSONBin السحابية ═══════════ */
 const JSONBIN_BIN_ID  = "6aadaf66ffd5d16053177808";
@@ -1175,7 +1268,6 @@ async function doRegister(){
     return setErr("rgMsg", "❌ هذا الرقم مسجّل مسبقًا — سجّل دخولك");
   }
 
-  // 🟢 تم إزالة المتغير المسبب للمشكلة (ref)
   const user = { name: name, phone: phone, pass: await hash(p1), joined: Date.now() };
   users.push(user);
   store.users = users;
@@ -1188,7 +1280,6 @@ async function doRegister(){
   startSession(user);
   toast("✅ تم إنشاء حسابك — أهلًا بك!");
 }
-
 
 async function doLogin(){
   const phone = document.getElementById("lgCC").value + document.getElementById("lgPhone").value.trim();
@@ -1267,8 +1358,9 @@ function applySessionUI(){
   if(pill) pill.style.display = (s && s.phone && !isAdm) ? "" : "none";
 }
 
-function logout(){
-  if(!confirm("تسجيل الخروج؟")) return;
+async function logout(){
+  const confirm = await window.showConfirm("هل أنت تأكد من تسجيل الخروج من حسابك؟", "تسجيل الخروج", "warn");
+  if(!confirm) return;
   store.session = null;
   closeAdmin();
   applySessionUI();
@@ -1385,525 +1477,687 @@ function galStep(d){
 function addToCart(id){
   const cart = store.cart;
   const ex = cart.find(function(c){ return c.id === id; });
-  if(ex) ex.qty++; else cart.push({ id: id, qty: 1 });
+  if(ex) ex.qty = (ex.qty || 1) + 1;
+  else cart.push({ id: id, qty: 1 });
   store.cart = cart;
-  renderCart();
-  toast("✅ أُضيف إلى السلة");
+  toast("🛒 تم إضافة الباقة إلى السلة");
 }
-function chQty(id, d){
+function changeQty(id, delta){
   let cart = store.cart;
-  const it = cart.find(function(c){ return c.id === id; });
-  if(!it) return;
-  it.qty += d;
-  if(it.qty <= 0) cart = cart.filter(function(c){ return c.id !== id; });
+  const item = cart.find(function(c){ return c.id === id; });
+  if(!item) return;
+  item.qty = (item.qty || 1) + delta;
+  if(item.qty <= 0) cart = cart.filter(function(c){ return c.id !== id; });
   store.cart = cart;
   renderCart();
 }
-function cartTotal(){
-  return store.cart.reduce(function(s, c){
-    const p = store.products.find(function(x){ return x.id === c.id; });
-    return s + (p ? effectivePrice(p) * c.qty : 0);
-  }, 0);
+function buyNow(id){
+  store.cart = [{ id: id, qty: 1 }];
+  openCart();
+}
+function openCart(){
+  renderCart();
+  document.getElementById("cartDrawer").classList.add("show");
+  document.getElementById("overlay").classList.add("show");
 }
 function renderCart(){
   const cart = store.cart;
-  document.getElementById("cartBody").innerHTML = cart.map(function(c){
+  let total = 0;
+  const html = cart.map(function(c){
     const p = store.products.find(function(x){ return x.id === c.id; });
     if(!p) return "";
-    return '<div class="citem"><div style="width:46px;height:46px;border-radius:12px;background:rgba(255,255,255,.05);display:grid;place-items:center;font-size:22px;overflow:hidden">' +
-      (prodPhotos(p).length ? '<img src="' + esc(prodPhotos(p)[0]) + '" style="width:100%;height:100%;object-fit:cover" alt="">' : esc(p.img || "🪙")) + '</div>' +
-      '<div style="flex:1"><b style="font-size:13px;display:block">' + esc(p.name) + '</b>' +
-      '<div class="plus" style="font-weight:900;font-size:13px">' + money(effectivePrice(p) * c.qty) + ' USDT</div></div>' +
-      '<div class="qty"><button onclick="chQty(' + p.id + ',1)">+</button><span>' + c.qty + '</span><button onclick="chQty(' + p.id + ',-1)">−</button></div></div>';
-  }).join("") || '<div class="empty">سلتك فارغة ✨</div>';
-  document.getElementById("cartTotal").textContent = money(cartTotal()) + " USDT";
-  document.getElementById("cartMyBal").textContent = money(getBalance()) + " USDT";
+    const ep = effectivePrice(p);
+    const lineTotal = ep * c.qty;
+    total += lineTotal;
+    return '<div class="citem"><div style="flex:1"><b>' + esc(p.name) + '</b>' +
+      '<div style="font-size:12px;color:var(--accent);font-weight:800;margin-top:2px">' + money(ep) + ' USDT</div></div>' +
+      '<div class="qty"><button onclick="changeQty(' + p.id + ',-1)">-</button>' +
+      '<b>' + c.qty + '</b><button onclick="changeQty(' + p.id + ',1)">+</button></div></div>';
+  }).join("");
+
+  document.getElementById("cartBody").innerHTML = html || '<div class="empty">السلة فارغة 🛒</div>';
+  document.getElementById("cartTotal").textContent = money(total) + " USDT";
+  document.getElementById("cartMyBal").textContent = money(getBalance());
 }
 
-/* ═══════════ الرصيد ═══════════ */
-function renderBalance(){
-  const b = getBalance();
-  document.getElementById("balMain").textContent = money(b);
-  document.getElementById("hdrBalance").textContent = money(b);
-  const tx = getTx();
-  document.getElementById("txList").innerHTML = tx.map(function(t){
-    return '<div class="tx"><div><b>' + esc(t.label) + '</b>' +
-      '<span>' + new Date(t.time).toLocaleString("ar", {dateStyle:"short", timeStyle:"short"}) + '</span></div>' +
-      '<div class="amt ' + (t.plus ? "plus" : "minus") + '">' + (t.plus ? "+" : "−") + money(t.amount) + '</div></div>';
-  }).join("") || '<div class="empty" style="padding:26px 0">لا عمليات بعد</div>';
+async function checkoutCart(){
+  const cart = store.cart;
+  if(!cart.length) return window.showAlert("السلة فارغة! اختر باقة أولاً.", "السلة فارغة", "warn");
+  let total = 0;
+  const itemsText = cart.map(function(c){
+    const p = store.products.find(function(x){ return x.id === c.id; });
+    if(!p) return "";
+    const ep = effectivePrice(p);
+    total += ep * c.qty;
+    return "• " + p.name + " (" + c.qty + "×) — " + money(ep * c.qty) + " USDT";
+  }).join("<br>");
+
+  const myBal = getBalance();
+  if(myBal < total){
+    window.showAlert("رصيدك الحالي (" + money(myBal) + " USDT) غير كافٍ لشراء الطلب إجمالي " + money(total) + " USDT. يرجى شحن حسابك أولاً.", "رصيد غير كافٍ", "error");
+    return;
+  }
+
+  document.getElementById("payItems").innerHTML = itemsText;
+  document.getElementById("payAmount").textContent = money(total);
+  document.getElementById("payAfter").textContent = money(myBal - total);
+  document.getElementById("payMsg").textContent = "";
+
+  document.getElementById("cartDrawer").classList.remove("show");
+  document.getElementById("payModal").classList.add("show");
 }
+
+async function submitOrder(){
+  const cart = store.cart;
+  if(!cart.length) return;
+  let total = 0;
+  const items = [];
+  cart.forEach(function(c){
+    const p = store.products.find(function(x){ return x.id === c.id; });
+    if(p){
+      const ep = effectivePrice(p);
+      total += ep * c.qty;
+      items.push({ id: p.id, name: p.name, qty: c.qty, price: ep });
+    }
+  });
+
+  const phone = store.session.phone;
+  const myBal = getBalance(phone);
+  if(myBal < total) return setErr("payMsg", "❌ رصيدك غير كافٍ");
+
+  const btn = document.getElementById("verifyBtn");
+  btn.disabled = true; btn.innerHTML = '<span class="spin"></span>جارٍ خصم الرصيد وتنفيذ الطلب...';
+
+  await syncFromCloud();
+
+  setBalance(myBal - total, phone);
+  const tx = getTx(phone);
+  tx.unshift({ title: "شراء شدات ببجي", amt: "-" + money(total), time: Date.now() });
+  setTx(tx, phone);
+
+  const reqId = nextReqId();
+  const custNote = (document.getElementById("custNote").value || "").trim();
+  const order = {
+    id: reqId,
+    phone: phone,
+    name: store.session.name,
+    items: items,
+    total: total,
+    custNote: custNote,
+    status: "pending",
+    time: Date.now()
+  };
+
+  const orders = store.orders;
+  orders.unshift(order);
+  store.orders = orders;
+
+  await syncToCloud();
+
+  btn.disabled = false; btn.innerHTML = "✅ تأكيد الشراء والخصم";
+  store.cart = [];
+  closeAll();
+
+  refreshAll();
+  window.showAlert("🎉 تم خصم " + money(total) + " USDT من رصيدك وتقديم طلب الشراء بنجاح! سيتم التنفيذ فورًا فور مراجعة المدير.", "تم الشراء بنجاح", "success");
+
+  notifyAdmin("📦 <b>طلب شراء جديد (مدفوع من الرصيد)</b>\n\n🆔 الطلب: <code>#" + reqId + "</code>\n👤 " + esc(store.session.name) + " (" + esc(phone) + ")\n💰 المبلغ الخصم: <b>" + money(total) + " USDT</b>\n🎮 ID اللاعب: <code>" + (esc(custNote) || "غير مدخل") + "</code>\n📋 الباقات:\n" + items.map(function(i){ return "• " + esc(i.name) + " × " + i.qty; }).join("\n"));
+}
+
+/* ═══════════ شحن واسترجاع الرصيد ═══════════ */
 function topUpFlow(){
-  if(!store.session || !store.session.phone || store.session.admin) return toast("هذه الميزة لحسابات المستخدمين فقط", "err");
-  document.getElementById("tuWallet").textContent = store.cfg.wallet || "⚠️ المحفظة غير مضبوطة بعد";
-  document.getElementById("tuAmount").value = "";
-  document.getElementById("tuTxid").value = "";
+  const w = store.cfg.wallet || "Txxx—يرجى ضبط محفظة المتجر من الإدارة";
+  document.getElementById("tuWallet").textContent = w;
   document.getElementById("tuMsg").textContent = "";
   document.getElementById("topUpModal").classList.add("show");
+  document.getElementById("overlay").classList.add("show");
 }
-function submitTopUp(){
-  const s = store.session;
-  const amount = parseFloat(document.getElementById("tuAmount").value);
-  const txid = document.getElementById("tuTxid").value.trim();
-  if(!(amount >= 1)) return setErr("tuMsg", "❌ أدخل مبلغًا صحيحًا");
-  if(txid.length < 8) return setErr("tuMsg", "❌ أدخل TXID صحيحًا");
 
-  const id = nextReqId();
-  store.orders = [{ id: id, type: "topup", amount: amount, txid: txid, customer: s.name,
-    phone: s.phone, status: "pending", time: Date.now() }].concat(store.orders).slice(0, 300);
+async function copyAddr(){
+  const txt = document.getElementById("tuWallet").textContent;
+  try{
+    await navigator.clipboard.writeText(txt);
+    toast("📋 تم نسخ عنوان المحفظة!");
+  }catch(e){
+    toast("لم نتمكن من النسخ تلقائيًا", "err");
+  }
+}
 
-  notifyAdmin("💰 <b>طلب شحن رصيد #" + id + "</b>\n\n👤 " + esc(s.name) + "\n📱 " + esc(s.phone) +
-    "\n💵 المبلغ: <b>" + money(amount) + " USDT</b>\n🔗 TXID: <code>" + esc(txid) + "</code>" +
-    "\n\nللموافقة: <b>/approve " + id + "</b>\nللرفض: <b>/reject " + id + "</b>");
+async function submitTopUp(){
+  const amt = parseFloat(document.getElementById("tuAmount").value);
+  const txid = (document.getElementById("tuTxid").value || "").trim();
+  if(!amt || amt <= 0) return setErr("tuMsg", "❌ أدخل مبلغًا صحيحًا");
+  if(!txid)            return setErr("tuMsg", "❌ أدخل رقم TXID المعاملة");
 
-  setOk("tuMsg", "✅ أُرسل طلب الشحن — بانتظار موافقة المدير");
-  toast("📤 أُرسل طلب الشحن — قيد المراجعة", "gold");
+  await syncFromCloud();
+
+  const reqId = nextReqId();
+  const phone = store.session.phone;
+  const order = {
+    id: reqId,
+    type: "topup",
+    phone: phone,
+    name: store.session.name,
+    amount: amt,
+    txid: txid,
+    status: "pending",
+    time: Date.now()
+  };
+
+  const orders = store.orders;
+  orders.unshift(order);
+  store.orders = orders;
+
+  await syncToCloud();
+
+  closeAll();
+  document.getElementById("tuAmount").value = "";
+  document.getElementById("tuTxid").value = "";
   refreshAll();
-  setTimeout(closeAll, 1800);
+  window.showAlert("📤 تم إرسال طلب شحن الرصيد بمبلغ " + money(amt) + " USDT. سيتم مراجعة المعاملة وإضافة الرصيد لحسابك قريبًا.", "تم إرسال الطلب", "success");
+
+  notifyAdmin("💰 <b>طلب شحن رصيد جديد</b>\n\n🆔 الطلب: <code>#" + reqId + "</code>\n👤 " + esc(store.session.name) + " (" + esc(phone) + ")\n💵 المبلغ: <b>" + money(amt) + " USDT</b>\n🔗 TXID: <code>" + esc(txid) + "</code>");
 }
 
 function withdrawFlow(){
-  const s = store.session;
-  if(!s || !s.phone || s.admin){ toast("هذه الميزة لحسابات المستخدمين فقط", "err"); return; }
   document.getElementById("wdAvail").textContent = money(getBalance());
-  document.getElementById("wdAmount").value = "";
-  document.getElementById("wdWallet").value = "";
   document.getElementById("wdMsg").textContent = "";
   document.getElementById("withdrawModal").classList.add("show");
+  document.getElementById("overlay").classList.add("show");
 }
-function submitWithdraw(){
-  const s = store.session;
-  const amount = parseFloat(document.getElementById("wdAmount").value);
-  const wallet = document.getElementById("wdWallet").value.trim();
-  const bal = getBalance();
 
-  if(!(amount >= 1))             return setErr("wdMsg", "❌ أدخل مبلغًا صحيحًا");
-  if(amount > bal)               return setErr("wdMsg", "❌ المبلغ أكبر من رصيدك المتاح (" + money(bal) + " USDT)");
-  if(!/^T[0-9A-Za-z]{25,40}$/.test(wallet)) return setErr("wdMsg", "❌ أدخل عنوان محفظة TRC20 صحيحًا (يبدأ بحرف T)");
+async function submitWithdraw(){
+  const amt = parseFloat(document.getElementById("wdAmount").value);
+  const wallet = (document.getElementById("wdWallet").value || "").trim();
+  const phone = store.session.phone;
+  const myBal = getBalance(phone);
 
-  const id = nextReqId();
-  store.orders = [{ id: id, type: "withdraw", amount: amount, wallet: wallet, customer: s.name,
-    phone: s.phone, status: "pending", time: Date.now() }].concat(store.orders).slice(0, 300);
+  if(!amt || amt <= 0) return setErr("wdMsg", "❌ أدخل مبلغًا صحيحًا");
+  if(amt > myBal)      return setErr("wdMsg", "❌ المبلغ المطلوب يتجاوز رصيدك المتاح");
+  if(!wallet)          return setErr("wdMsg", "❌ أدخل عنوان محفظتك TRC20");
 
-  notifyAdmin("💸 <b>طلب استرجاع رصيد #" + id + "</b>\n\n👤 " + esc(s.name) + "\n📱 " + esc(s.phone) +
-    "\n💵 المبلغ: <b>" + money(amount) + " USDT</b>\n💼 رصيده: " + money(bal) + " USDT" +
-    "\n🏦 محفظته (TRC20):\n<code>" + esc(wallet) + "</code>" +
-    "\n\nللموافقة: <b>/approve " + id + "</b>\nللرفض: <b>/reject " + id + "</b>");
+  await syncFromCloud();
 
-  setOk("wdMsg", "✅ أُرسل طلب الاسترجاع — بانتظار موافقة المدير");
-  toast("📤 أُرسل طلب الاسترجاع — قيد المراجعة", "gold");
+  const reqId = nextReqId();
+  const order = {
+    id: reqId,
+    type: "withdraw",
+    phone: phone,
+    name: store.session.name,
+    amount: amt,
+    wallet: wallet,
+    status: "pending",
+    time: Date.now()
+  };
+
+  const orders = store.orders;
+  orders.unshift(order);
+  store.orders = orders;
+
+  await syncToCloud();
+
+  closeAll();
+  document.getElementById("wdAmount").value = "";
+  document.getElementById("wdWallet").value = "";
   refreshAll();
-  setTimeout(closeAll, 1800);
+  window.showAlert("💸 تم تقديم طلب استرجاع مبلغ " + money(amt) + " USDT. سيتم التحويل والمراجعة من قبل المدير.", "تم تقديم الطلب", "info");
+
+  notifyAdmin("💸 <b>طلب استرجاع رصيد جديد</b>\n\n🆔 الطلب: <code>#" + reqId + "</code>\n👤 " + esc(store.session.name) + " (" + esc(phone) + ")\n💵 المبلغ: <b>" + money(amt) + " USDT</b>\n🏦 المحفظة: <code>" + esc(wallet) + "</code>");
 }
 
-/* ═══════════ حسابي ═══════════ */
+/* ═══════════ سجل الطلبات والحساب ═══════════ */
+function showOrdersSheet(){
+  const s = store.session;
+  if(!s) return;
+  const list = store.orders.filter(function(o){ return o.phone === s.phone; });
+  document.getElementById("ordersSheetList").innerHTML = list.map(function(o){
+    const st = o.status === "approved" ? '<span class="badge b-ok">مقبول ✓</span>'
+      : o.status === "rejected" ? '<span class="badge b-no">مرفوض ✕</span>'
+      : '<span class="badge b-wait">بانتظار المراجعة ⌛</span>';
+    let desc = "";
+    if(o.type === "topup") desc = "شحن رصيد بقيمة " + money(o.amount) + " USDT";
+    else if(o.type === "withdraw") desc = "طلب استرجاع " + money(o.amount) + " USDT";
+    else desc = (o.items || []).map(function(i){ return i.name + " ×" + i.qty; }).join(", ");
+
+    return '<div class="tx" style="margin:0 0 9px"><div><b>#' + o.id + ' — ' + esc(desc) + '</b>' +
+      '<span>' + new Date(o.time).toLocaleString("ar") + '</span></div><div>' + st + '</div></div>';
+  }).join("") || '<div class="empty">لا يوجد طلبات سابقة</div>';
+  document.getElementById("ordersModal").classList.add("show");
+}
+
+function renderBalance(){
+  const p = store.session ? store.session.phone : "";
+  const b = getBalance(p);
+  document.getElementById("balMain").textContent = money(b) + " USDT";
+  document.getElementById("hdrBalance").textContent = money(b);
+
+  const txs = getTx(p);
+  document.getElementById("txList").innerHTML = txs.map(function(t){
+    const isPlus = String(t.amt).indexOf("+") !== -1;
+    return '<div class="tx"><div><b>' + esc(t.title) + '</b><span>' +
+      new Date(t.time).toLocaleString("ar") + '</span></div>' +
+      '<div class="amt ' + (isPlus ? "plus" : "minus") + '">' + esc(t.amt) + ' USDT</div></div>';
+  }).join("") || '<div class="empty">لا توجد عمليات سابقة</div>';
+}
+
 function renderAccount(){
   const s = store.session;
   if(!s) return;
   document.getElementById("accName").textContent = s.name;
-  document.getElementById("accPhone2").textContent = s.admin ? (s.role === "owner" ? "👑 المالك" : "🛡️ مدير") : s.phone;
-  document.getElementById("heroName").textContent = s.name.split(" ")[0];
-  const done = store.orders.filter(function(o){
-    return s.phone && !s.admin && o.phone === s.phone && o.type === "order" && o.status !== "pending";
-  });
-  document.getElementById("accOrders").textContent = done.length;
-  document.getElementById("accSpent").textContent = money(done.reduce(function(x,o){ return x + o.amount; }, 0));
-  document.getElementById("accBal").textContent = money(s.admin ? 0 : getBalance());
+  document.getElementById("accPhone2").textContent = s.phone;
+
+  const myOrders = store.orders.filter(function(o){ return o.phone === s.phone; });
+  let spent = 0;
+  myOrders.forEach(function(o){ if(!o.type && o.status === "approved") spent += (o.total || 0); });
+
+  document.getElementById("accOrders").textContent = myOrders.length;
+  document.getElementById("accSpent").textContent = money(spent);
+  document.getElementById("accBal").textContent = money(getBalance(s.phone));
 }
-function showOrdersSheet(){
-  const s = store.session;
-  const mine = store.orders.filter(function(o){ return s && s.phone && !s.admin && o.phone === s.phone; });
-  const st = { pending: ["⏳ قيد المراجعة","b-wait"], approved: ["✅ مقبول","b-ok"], rejected: ["❌ مرفوض","b-no"] };
-  const typeLabel = { topup: "شحن رصيد", withdraw: "استرجاع رصيد" };
-  document.getElementById("ordersSheetList").innerHTML = mine.map(function(o){
-    const label = typeLabel[o.type] || o.item;
-    return '<div class="tx" style="margin:0 0 9px"><div><b>' + esc(label) + '</b>' +
-      (o.txid ? '<span style="direction:ltr;display:inline-block">' + esc(String(o.txid).slice(0,16)) + '…</span>' : '') +
-      (o.wallet ? '<span style="direction:ltr;display:inline-block">🏦 ' + esc(String(o.wallet).slice(0,10)) + '…</span>' : '') + '</div>' +
-      '<div><div class="' + (o.type === "topup" ? "plus" : "minus") + '" style="font-weight:900;font-size:13px">' + money(o.amount) + '</div>' +
-      '<span class="badge ' + (st[o.status] ? st[o.status][1] : "") + '">' + (st[o.status] ? st[o.status][0] : o.status) + '</span></div></div>';
-  }).join("") || '<div class="empty">لا طلبات بعد</div>';
-  document.getElementById("ordersModal").classList.add("show");
-}
+
 function contactSupport(){
-  if(store.cfg.support) window.open(store.cfg.support, "_blank");
-  else toast("أضف رابط الدعم من لوحة الإدارة", "err");
+  const sup = store.cfg.support;
+  if(sup) window.open(sup, "_blank");
+  else window.showAlert("رابط الدعم الفني غير متوفر حاليًا. يرجى التواصل لاحقاً.", "الدعم الفني", "info");
 }
 
-/* ═══════════ الشراء المباشر + الدفع من الرصيد ═══════════ */
-let payCtx = null;
-function buyNow(id){
-  const p = store.products.find(function(x){ return x.id === id; });
-  if(!p) return;
-  const s = store.session;
-  if(!s){ toast("سجّل دخولك أولًا", "err"); return; }
-  if(s.admin){ toast("❌ الشراء متاح لحسابات المستخدمين فقط", "err"); return; }
-  const ep = effectivePrice(p);
-  const bal = getBalance();
-  if(ep > bal){
-    toast("❌ رصيدك غير كافي — المطلوب " + money(ep) + " USDT ورصيدك " + money(bal) + " USDT. اشحن رصيدك أولًا.", "err");
-    return;
-  }
-  payCtx = { amount: ep, items: p.name + " ×1 = " + money(ep) };
-  document.getElementById("payItems").textContent = payCtx.items;
-  document.getElementById("payAmount").textContent = money(payCtx.amount);
-  document.getElementById("payAfter").textContent = money(bal - payCtx.amount);
-  document.getElementById("custNote").value = "";
-  document.getElementById("payMsg").textContent = "";
-  closeAll();
-  document.getElementById("payModal").classList.add("show");
+/* ═══════════ لوحة الإدارة (ADMIN) ═══════════ */
+function openAdmin(){
+  if(!isAdmin()) return window.showAlert("غير مصرح لك بدخول لوحة التحكم!", "خطأ في الصلاحية", "error");
+  document.body.classList.add("admin");
+  renderAdminPanels();
+  renderAdminData();
 }
-function checkoutCart(){
-  const cart = store.cart;
-  if(!cart.length) return toast("السلة فارغة", "err");
-  const s = store.session;
-  if(!s) return toast("سجّل دخولك أولًا", "err");
-  if(s.admin) return toast("❌ الشراء متاح لحسابات المستخدمين فقط", "err");
-  const total = +cartTotal().toFixed(2);
-  const bal = getBalance();
-  if(total > bal){
-    toast("❌ رصيدك غير كافي — المطلوب " + money(total) + " USDT ورصيدك " + money(bal) + " USDT. اشحن رصيدك أولًا.", "err");
-    return;
+function closeAdmin(){ document.body.classList.remove("admin"); }
+
+function renderAdminPanels(){
+  const roleTag = document.getElementById("adminRoleTag");
+  if(roleTag){
+    roleTag.textContent = isOwner() ? "المالك 👑" : "مشرف 🛡️";
+    roleTag.className = "role-tag " + (isOwner() ? "b-owner" : "b-ok");
   }
-  payCtx = {
-    amount: total,
-    items: cart.map(function(c){
-      const p = store.products.find(function(x){ return x.id === c.id; });
-      return p.name + " ×" + c.qty + " = " + money(effectivePrice(p) * c.qty);
-    }).join(" + ")
-  };
-  document.getElementById("payItems").textContent = payCtx.items;
-  document.getElementById("payAmount").textContent = money(payCtx.amount);
-  document.getElementById("payAfter").textContent = money(bal - payCtx.amount);
-  document.getElementById("custNote").value = "";
-  document.getElementById("payMsg").textContent = "";
-  closeAll();
-  document.getElementById("payModal").classList.add("show");
+
+  document.getElementById("pnAdmins").style.display    = isOwner() ? "block" : "none";
+  document.getElementById("pnDanger").style.display    = isOwner() ? "block" : "none";
+
+  document.getElementById("pnOrders").style.display    = can("orders") ? "block" : "none";
+  document.getElementById("pnTopups").style.display    = can("topups") ? "block" : "none";
+  document.getElementById("pnWithdraws").style.display = can("topups") ? "block" : "none";
+  document.getElementById("pnUsers").style.display     = can("users") ? "block" : "none";
+  document.getElementById("pnProducts").style.display  = can("products") ? "block" : "none";
+  document.getElementById("pnProductsList").style.display = can("products") ? "block" : "none";
+  document.getElementById("pnPromos").style.display    = can("promos") ? "block" : "none";
+  document.getElementById("pnBanner").style.display    = can("banner") ? "block" : "none";
+  document.getElementById("pnConfig").style.display    = can("config") ? "block" : "none";
+  document.getElementById("pnOrdersList").style.display = can("orders") ? "block" : "none";
 }
-async function submitOrder(){
-  const s = store.session;
-  const btn = document.getElementById("verifyBtn");
-  const bal = getBalance();
-  if(!payCtx) return;
-  if(payCtx.amount > bal){
-    setErr("payMsg", "❌ رصيدك غير كافي لإتمام الشراء");
-    return;
-  }
-  btn.disabled = true;
-  btn.innerHTML = '<span class="spin"></span>جارٍ خصم المبلغ...';
 
-  setBalance(+(bal - payCtx.amount).toFixed(2));
-  const tx = getTx();
-  tx.unshift({ label: "شراء شدات: " + payCtx.items, amount: payCtx.amount, plus: false, time: Date.now() });
-  setTx(tx);
+function renderAdminData(){
+  const orders = store.orders;
+  const users  = store.users;
+  const prods  = store.products;
 
-  const id = nextReqId();
-  const playerId = document.getElementById("custNote").value.trim();
-  store.orders = [{ id: id, type: "order", item: payCtx.items, amount: payCtx.amount,
-    customer: s.name, phone: s.phone, note: playerId,
-    paidFrom: "balance", status: "pending", time: Date.now() }]
-    .concat(store.orders).slice(0, 300);
-  store.cart = [];
+  // إحصائيات
+  let totalRev = 0;
+  orders.forEach(function(o){ if(!o.type && o.status === "approved") totalRev += (o.total || 0); });
+  const pendingCount = orders.filter(function(o){ return o.status === "pending"; }).length;
+
+  document.getElementById("adminStats").innerHTML =
+    '<div class="stat"><span>المستخدمون</span><b>' + users.length + '</b></div>' +
+    '<div class="stat"><span>الطلبات المعلقة</span><b>' + pendingCount + '</b></div>' +
+    '<div class="stat"><span>إجمالي المبيعات</span><b>' + money(totalRev) + '</b></div>' +
+    '<div class="stat"><span>عدد الباقات</span><b>' + prods.length + '</b></div>';
+
+  if(isOwner()){ renderAdminsPanel(); }
+  if(can("orders")){ renderPendingOrders(); renderAllOrders(); }
+  if(can("topups")){ renderTopupsList(); renderWithdrawsList(); }
+  if(can("users")){ renderUsersTable(); }
+  if(can("products")){ renderProductsTable(); updatePromoProductSelect(); }
+  if(can("promos")){ renderPromosTable(); }
+  if(can("banner")){ populateBannerForm(); }
+  if(can("config")){ populateConfigForm(); }
+}
+
+/* 👑 إدارة حسابات المدراء */
+function renderAdminsPanel(){
+  const usersSelect = document.getElementById("amUser");
+  usersSelect.innerHTML = '<option value="">— إدخال يدوي —</option>' +
+    store.users.map(function(u){ return '<option value="' + esc(u.phone) + '" data-name="' + esc(u.name) + '">' + esc(u.name) + ' (' + esc(u.phone) + ')</option>'; }).join("");
+
+  document.getElementById("amPerms").innerHTML = PERMS.map(function(p){
+    return '<label class="perm-item"><input type="checkbox" class="am-perm" value="' + p.key + '"><span>' + p.label + '</span></label>';
+  }).join("");
+
+  const admins = db.admins || [];
+  document.getElementById("adminsList").innerHTML = admins.map(function(a){
+    return '<div class="tx" style="margin:0 0 8px"><div><b>🛡️ ' + esc(a.name) + '</b><span>' + esc(a.phone) + '</span></div>' +
+      '<div><button class="mini no" onclick="removeAdminAccount(\'' + esc(a.phone) + '\')">حذف المدير ✕</button></div></div>';
+  }).join("") || '<div class="empty" style="padding:10px 0">لا يوجد مدراء فرعيين بعد</div>';
+}
+
+async function addAdminAccount(){
+  const name  = (document.getElementById("amName").value || "").trim();
+  const phone = (document.getElementById("amPhone").value || "").trim();
+  const pass  = document.getElementById("amPass").value;
+
+  if(!name)                        return setErr("amMsg", "❌ أدخل اسم المدير");
+  if(!/^\+\d{8,15}$/.test(phone)) return setErr("amMsg", "❌ رقم الهاتف غير صحيح");
+  if(pass.length < 6)              return setErr("amMsg", "❌ كلمة سر الإدارة 6 خانات على الأقل");
+
+  const perms = {};
+  const checkboxes = document.querySelectorAll(".am-perm:checked");
+  checkboxes.forEach(function(cb){ perms[cb.value] = true; });
+
+  await syncFromCloud();
+
+  const admins = db.admins || [];
+  if(admins.some(function(a){ return a.phone === phone; })) return setErr("amMsg", "❌ هذا الرقم مسجل كمدير مسبقاً");
+
+  admins.push({ name: name, phone: phone, adminPass: await hash(pass), perms: perms });
+  db.admins = admins;
 
   await syncToCloud();
 
-  notifyAdmin(
-    "🎮 <b>طلب شدات جديد #" + id + " — مدفوع من الرصيد</b>\n\n" +
-    "👤 " + esc(s.name) + " — " + esc(s.phone) + "\n" +
-    "📦 <b>" + esc(payCtx.items) + "</b>\n" +
-    (playerId ? "🆔 Player ID: <code>" + esc(playerId) + "</code>\n" : "") +
-    "💵 <b>" + money(payCtx.amount) + " USDT</b> (خُصمت من الرصيد)\n" +
-    "💼 رصيده الآن: " + money(getBalance(s.phone)) + " USDT" +
-    "\n\nللموافقة: <b>/approve " + id + "</b>\nللرفض وإرجاع المبلغ: <b>/reject " + id + "</b>");
-
-  btn.disabled = false;
-  btn.innerHTML = "✅ تأكيد الشراء والخصم";
-  setOk("payMsg", "✅ تم الدفع بنجاح — طلبك قيد المراجعة وسيتم شحن الشدات قريبًا");
-  toast("✅ تم خصم " + money(payCtx.amount) + " USDT من رصيدك", "gold");
-  refreshAll();
-  setTimeout(closeAll, 2200);
-}
-function copyAddr(){
-  if(store.cfg.wallet) navigator.clipboard.writeText(store.cfg.wallet);
-  toast("📋 نُسخ العنوان");
+  document.getElementById("amName").value = "";
+  document.getElementById("amPhone").value = "";
+  document.getElementById("amPass").value = "";
+  setOk("amMsg", "✅ تم إضافة المدير بنجاح!");
+  renderAdminsPanel();
 }
 
-/* ═══════════ تيليجرام ═══════════ */
-async function sendTG(chat, html){
-  const cfg = store.cfg;
-  if(!cfg.token) return false;
-  try{
-    const r = await fetch("https://api.telegram.org/bot" + cfg.token + "/sendMessage", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ chat_id: chat, text: html, parse_mode: "HTML" })
-    });
-    return r.ok;
-  }catch(e){ return false; }
-}
-function notifyAdmin(html){ return sendTG(store.cfg.chat, html); }
-
-/* ═══════════ أوامر البوت ═══════════ */
-let polling = false, pollOffset = 0;
-function togglePolling(){
-  const cfg = store.cfg;
-  if(!cfg.token || !cfg.chat) return toast("احفظ التوكن و Chat ID أولًا", "err");
-  polling = !polling;
-  document.getElementById("pollBtn").textContent = polling
-    ? "⏸️ إيقاف الاستماع" : "🤖 تشغيل الاستماع لأوامر تيليجرام";
-  const pm = document.getElementById("pollMsg");
-  pm.className = "msg ok";
-  pm.textContent = polling ? "🟢 يستمع للأوامر الآن — أرسل /stats من تيليجرام" : "تم الإيقاف";
-  if(polling) pollLoop();
-}
-async function pollLoop(){
-  while(polling){
-    const cfg = store.cfg;
-    try{
-      const r = await fetch("https://api.telegram.org/bot" + cfg.token + "/getUpdates?timeout=25&offset=" + pollOffset);
-      const data = await r.json();
-      const ups = data.result || [];
-      for(let i=0;i<ups.length;i++){
-        const upd = ups[i];
-        pollOffset = upd.update_id + 1;
-        const msg = upd.message;
-        if(!msg || !msg.text) continue;
-        if(String(msg.chat.id) !== String(cfg.chat)) continue;
-        await handleCommand(msg.text.trim(), String(msg.chat.id));
-      }
-    }catch(e){
-      await new Promise(function(r){ setTimeout(r, 3000); });
-    }
-  }
-}
-async function handleCommand(cmd, chat){
-  const parts = cmd.split(/\s+/);
-  const c = parts[0].toLowerCase();
-  const arg = parts.slice(1).join(" ");
-
-  if(c === "/start") return sendTG(chat, "👋 أهلًا بالمدير!\nأرسل /help لعرض الأوامر");
-  if(c === "/help")  return sendTG(chat, "🤖 <b>الأوامر:</b>\n/addproduct اسم|سعر|قبل|إيموجي\n/delproduct رقم\n/approve رقم\n/reject رقم\n/addbalance رقم_الهاتف المبلغ\n/setwallet عنوان\n/orders\n/products\n/stats");
-
-  if(c === "/stats"){
-    const orders = store.orders;
-    const rev = orders.filter(function(o){ return o.status === "approved" && o.type === "order"; })
-      .reduce(function(s,o){ return s + o.amount; }, 0);
-    return sendTG(chat, "📊 <b>إحصائيات NOVA Store</b>\n\n📦 الباقات: " + store.products.length +
-      "\n🧾 الطلبات: " + orders.length +
-      "\n⏳ المعلّقة: " + orders.filter(function(o){ return o.status === "pending"; }).length +
-      "\n✅ المقبولة: " + orders.filter(function(o){ return o.status === "approved"; }).length +
-      "\n💵 الإيرادات: <b>" + money(rev) + " USDT</b>\n👥 المستخدمون: " + store.users.length +
-      "\n🛡️ المدراء: " + (db.admins || []).length);
-  }
-  if(c === "/orders"){
-    const pend = store.orders.filter(function(o){ return o.status === "pending"; });
-    if(!pend.length) return sendTG(chat, "✅ لا طلبات معلّقة");
-    return sendTG(chat, "⏳ <b>معلّقة:</b>\n\n" + pend.map(function(o){
-      const typeL = { topup: "شحن رصيد", withdraw: "استرجاع" };
-      const label = typeL[o.type] ? typeL[o.type] + " " + money(o.amount) : esc(o.item) + " — " + money(o.amount) + " USDT";
-      return "#" + o.id + " — " + label + "\n👤 " + esc(o.customer) +
-        (o.note ? "\n🆔 " + esc(o.note) : "") + (o.wallet ? "\n🏦 " + esc(o.wallet) : "") +
-        "\n/approve " + o.id + " | /reject " + o.id;
-    }).join("\n\n"));
-  }
-  if(c === "/products"){
-    return sendTG(chat, "📦 <b>الباقات:</b>\n\n" + store.products.map(function(p){
-      return "#" + p.id + " " + esc(p.img || "") + " " + esc(p.name) + " — " + money(effectivePrice(p)) + " USDT";
-    }).join("\n"));
-  }
-  if(c === "/addproduct"){
-    const p2 = arg.split("|").map(function(x){ return x ? x.trim() : x; });
-    const name = p2[0], price = parseFloat(p2[1]), old = parseFloat(p2[2]), img = p2[3];
-    if(!name || !(price > 0)) return sendTG(chat, "❌ الصيغة: /addproduct اسم|السعر|قبل الخصم|إيموجي");
-    const prods = store.products;
-    prods.push({ id: Date.now(), name: name, price: price, old: old || null, img: img || "🪙", cat: "شدات UC", desc: "", photos: [] });
-    store.products = prods;
-    refreshAll(); renderAdminTables();
-    return sendTG(chat, "✅ أُضيف: " + esc(name) + " — " + money(price) + " USDT");
-  }
-  if(c === "/delproduct"){
-    const id = parseInt(arg);
-    store.products = store.products.filter(function(p){ return p.id !== id; });
-    refreshAll(); renderAdminTables();
-    return sendTG(chat, "✅ تم الحذف");
-  }
-  if(c === "/addbalance"){
-    const phone = parts[1], amt = parseFloat(parts[2]);
-    const u = store.users.find(function(x){ return x.phone === phone; });
-    if(!u || !(amt > 0)) return sendTG(chat, "❌ الصيغة: /addbalance رقم_الهاتف المبلغ");
-    addBalanceTo(phone, amt, "إضافة من المدير");
-    return sendTG(chat, "✅ أُضيف " + money(amt) + " USDT إلى " + esc(u.name));
-  }
-  if(c === "/approve"){
-    const id = parseInt(arg);
-    const ok = processOrderDecision(id, "approved");
-    return sendTG(chat, ok ? "✅ تم قبول الطلب #" + id : "❌ لم يتم العثور على الطلب #" + id);
-  }
-  if(c === "/reject"){
-    const id = parseInt(arg);
-    const ok = processOrderDecision(id, "rejected");
-    return sendTG(chat, ok ? "❌ تم رفض الطلب #" + id : "❌ لم يتم العثور على الطلب #" + id);
-  }
-  if(c === "/setwallet"){
-    if(!arg) return sendTG(chat, "❌ الصيغة: /setwallet عنوان_المحفظة");
-    const cfg = store.cfg; cfg.wallet = arg; store.cfg = cfg;
-    return sendTG(chat, "✅ تم تحديث المحفظة");
-  }
+async function removeAdminAccount(phone){
+  const confirm = await window.showConfirm("هل أنت تأكد من إزالة صلاحيات المدير من الرقم " + phone + "؟", "حذف مدير", "error");
+  if(!confirm) return;
+  await syncFromCloud();
+  db.admins = (db.admins || []).filter(function(a){ return a.phone !== phone; });
+  await syncToCloud();
+  toast("تم حذف المدير بنجاح");
+  renderAdminsPanel();
 }
 
-/* ═══════════ إداريات وقبول/رفض الطلبات ═══════════ */
-function processOrderDecision(id, status){
+/* 📋 الطلبات والموافقات */
+function renderPendingOrders(){
+  const pending = store.orders.filter(function(o){ return !o.type && o.status === "pending"; });
+  document.getElementById("pendingTable").innerHTML = '<tr><th>ID</th><th>المستخدم</th><th>تفاصيل الباقات</th><th>المبلغ</th><th>الإجراء</th></tr>' +
+    (pending.map(function(o){
+      const items = (o.items || []).map(function(i){ return i.name + " (×" + i.qty + ")"; }).join("<br>");
+      return '<tr><td><b>#' + o.id + '</b></td><td>' + esc(o.name) + '<br><small>' + esc(o.phone) + '</small><br><small style="color:var(--accent)">ID: ' + (esc(o.custNote) || "—") + '</small></td>' +
+        '<td>' + items + '</td><td><b>' + money(o.total) + '</b></td>' +
+        '<td><div class="row-flex" style="gap:4px"><button class="mini ok" onclick="approveOrder(' + o.id + ')">قبول ✓</button>' +
+        '<button class="mini no" onclick="rejectOrder(' + o.id + ')">رفض ✕</button></div></td></tr>';
+    }).join("") || '<tr><td colspan="5" class="empty">لا توجد طلبات معلقة 🚀</td></tr>');
+}
+
+function renderAllOrders(){
+  const all = store.orders.filter(function(o){ return !o.type; }).slice(0, 30);
+  document.getElementById("ordersTable").innerHTML = '<tr><th>ID</th><th>المستخدم</th><th>الإجمالي</th><th>الحالة</th></tr>' +
+    (all.map(function(o){
+      const st = o.status === "approved" ? '<span class="badge b-ok">تم الشحن</span>'
+        : o.status === "rejected" ? '<span class="badge b-no">مرفوض</span>'
+        : '<span class="badge b-wait">معلق</span>';
+      return '<tr><td>#' + o.id + '</td><td>' + esc(o.name) + '</td><td>' + money(o.total) + ' USDT</td><td>' + st + '</td></tr>';
+    }).join("") || '<tr><td colspan="4" class="empty">لا توجد طلبات سابقة</td></tr>');
+}
+
+async function approveOrder(id){
+  await syncFromCloud();
   const orders = store.orders;
   const o = orders.find(function(x){ return x.id === id; });
-  if(!o) return false;
-  o.status = status;
+  if(!o) return;
+
+  o.status = "approved";
   store.orders = orders;
 
-  if(o.type === "topup"){
-    if(status === "approved"){
-      addBalanceTo(o.phone, o.amount, "شحن رصيد مقبول #" + o.id);
-      pushNotif(o.phone, "✅ تم قبول طلب شحن الرصيد #" + o.id + " بمبلغ " + money(o.amount) + " USDT", "ok");
-    } else {
-      pushNotif(o.phone, "❌ تم رفض طلب شحن الرصيد #" + o.id, "err");
-    }
-  } else if(o.type === "withdraw"){
-    if(status === "approved"){
-      addBalanceTo(o.phone, -o.amount, "استرجاع رصيد مقبول #" + o.id + " → " + o.wallet);
-      pushNotif(o.phone, "✅ تمت معالجة طلب الاسترجاع #" + o.id + " — سيُحوّل " + money(o.amount) + " USDT إلى محفظتك", "ok");
-      notifyAdmin("💸 تم قبول الاسترجاع #" + o.id + "\n🏦 حوّل " + money(o.amount) + " USDT إلى:\n<code>" + esc(o.wallet) + "</code>");
-    } else {
-      pushNotif(o.phone, "❌ تم رفض طلب الاسترجاع #" + o.id + " — لم يُخصم أي مبلغ", "err");
-    }
-  } else if(o.type === "order"){
-    if(status === "approved"){
-      pushNotif(o.phone, "✅ تم شحن الشدات بنجاح للطلب #" + o.id, "ok");
-    } else {
-      addBalanceTo(o.phone, o.amount, "إرجاع مبلغ للطلب المرفوض #" + o.id);
-      pushNotif(o.phone, "❌ تم رفض طلبك #" + o.id + " وإعادة " + money(o.amount) + " USDT إلى رصيدك", "err");
-    }
-  }
-  refreshAll(); renderAdminTables();
-  return true;
+  pushNotif(o.phone, "🎉 تم تنفيذ طلب الشحن رقم #" + o.id + " وشحن حسابك بنجاح!", "ok");
+  await syncToCloud();
+  renderAdminData();
+  toast("✅ تم قبول الطلب #" + id);
 }
 
-function addBalanceTo(phone, amount, label){
-  const cur = getBalance(phone);
-  setBalance(+(cur + amount).toFixed(2), phone);
+async function rejectOrder(id){
+  const confirm = await window.showConfirm("هل أنت تأكد من رفض الطلب #" + id + " وإرجاع المبلغ إلى رصيد حساب المستخدم؟", "رفض الطلب وإرجاع المبلغ", "warn");
+  if(!confirm) return;
+
+  await syncFromCloud();
+  const orders = store.orders;
+  const o = orders.find(function(x){ return x.id === id; });
+  if(!o) return;
+
+  o.status = "rejected";
+  store.orders = orders;
+
+  // إرجاع المبلغ لفرصيد
+  const curBal = getBalance(o.phone);
+  setBalance(curBal + o.total, o.phone);
+
+  const tx = getTx(o.phone);
+  tx.unshift({ title: "استرداد مبلغ الطلب المرفوض #" + o.id, amt: "+" + money(o.total), time: Date.now() });
+  setTx(tx, o.phone);
+
+  pushNotif(o.phone, "❌ تم رفض طلب الشحن رقم #" + o.id + " وإعادة مبلغ " + money(o.total) + " USDT إلى رصيدك.", "err");
+  await syncToCloud();
+  renderAdminData();
+  toast("تم رفض الطلب وإعادة الرصيد للمستخدم", "gold");
+}
+
+/* 💰 طلبات الشحن والترجيع */
+function renderTopupsList(){
+  const topups = store.orders.filter(function(o){ return o.type === "topup" && o.status === "pending"; });
+  document.getElementById("topupList").innerHTML = topups.map(function(o){
+    return '<div class="tx" style="margin:0 0 9px"><div><b>#' + o.id + ' — طلب شحن ' + money(o.amount) + ' USDT</b>' +
+      '<span>المستخدم: ' + esc(o.name) + ' (' + esc(o.phone) + ')</span>' +
+      '<span>TXID: <code style="color:var(--accent2)">' + esc(o.txid) + '</code></span></div>' +
+      '<div class="row-flex" style="gap:4px"><button class="mini ok" onclick="approveTopup(' + o.id + ')">موافقة وتزويد الرصيد ✓</button>' +
+      '<button class="mini no" onclick="rejectTopup(' + o.id + ')">رفض ✕</button></div></div>';
+  }).join("") || '<div class="empty" style="padding:15px 0">لا توجد طلبات شحن رصيد معلقة</div>';
+}
+
+async function approveTopup(id){
+  await syncFromCloud();
+  const orders = store.orders;
+  const o = orders.find(function(x){ return x.id === id; });
+  if(!o) return;
+
+  o.status = "approved";
+  store.orders = orders;
+
+  const curBal = getBalance(o.phone);
+  setBalance(curBal + o.amount, o.phone);
+
+  const tx = getTx(o.phone);
+  tx.unshift({ title: "شحن رصيد للحساب", amt: "+" + money(o.amount), time: Date.now() });
+  setTx(tx, o.phone);
+
+  pushNotif(o.phone, "✅ تم قبول طلب شحن الرصيد رقم #" + o.id + " وإضافة " + money(o.amount) + " USDT إلى حسابك!", "ok");
+  await syncToCloud();
+  renderAdminData();
+  toast("✅ تم إضافة الرصيد للمستخدم بنجاح");
+}
+
+async function rejectTopup(id){
+  await syncFromCloud();
+  const orders = store.orders;
+  const o = orders.find(function(x){ return x.id === id; });
+  if(!o) return;
+
+  o.status = "rejected";
+  store.orders = orders;
+
+  pushNotif(o.phone, "❌ تم رفض طلب شحن الرصيد رقم #" + o.id + ". تأكد من رقم المعاملة TXID.", "err");
+  await syncToCloud();
+  renderAdminData();
+  toast("تم رفض طلب الشحن", "gold");
+}
+
+function renderWithdrawsList(){
+  const withdraws = store.orders.filter(function(o){ return o.type === "withdraw" && o.status === "pending"; });
+  document.getElementById("withdrawList").innerHTML = withdraws.map(function(o){
+    return '<div class="tx" style="margin:0 0 9px"><div><b>#' + o.id + ' — طلب استرجاع ' + money(o.amount) + ' USDT</b>' +
+      '<span>المستخدم: ' + esc(o.name) + ' (' + esc(o.phone) + ')</span>' +
+      '<span>المحفظة: <code style="color:var(--gold)">' + esc(o.wallet) + '</code></span></div>' +
+      '<div class="row-flex" style="gap:4px"><button class="mini ok" onclick="approveWithdraw(' + o.id + ')">قبول وخصم الرصيد ✓</button>' +
+      '<button class="mini no" onclick="rejectWithdraw(' + o.id + ')">رفض ✕</button></div></div>';
+  }).join("") || '<div class="empty" style="padding:15px 0">لا توجد طلبات استرجاع معلقة</div>';
+}
+
+async function approveWithdraw(id){
+  await syncFromCloud();
+  const orders = store.orders;
+  const o = orders.find(function(x){ return x.id === id; });
+  if(!o) return;
+
+  const curBal = getBalance(o.phone);
+  if(curBal < o.amount) return window.showAlert("رصيد المستخدم الحالي غير كافٍ لتنفيذ طلب الاسترجاع!", "رصيد غير كافٍ", "error");
+
+  o.status = "approved";
+  store.orders = orders;
+
+  setBalance(curBal - o.amount, o.phone);
+
+  const tx = getTx(o.phone);
+  tx.unshift({ title: "استرجاع رصيد للمحفظة", amt: "-" + money(o.amount), time: Date.now() });
+  setTx(tx, o.phone);
+
+  pushNotif(o.phone, "💸 تم موافقة طلب استرجاع المبلغ #" + o.id + " وخصم " + money(o.amount) + " USDT للتحويل إلى محفظتك.", "ok");
+  await syncToCloud();
+  renderAdminData();
+  toast("✅ تم قبول وتخصيم الاسترجاع");
+}
+
+async function rejectWithdraw(id){
+  await syncFromCloud();
+  const orders = store.orders;
+  const o = orders.find(function(x){ return x.id === id; });
+  if(!o) return;
+
+  o.status = "rejected";
+  store.orders = orders;
+
+  pushNotif(o.phone, "❌ تم رفض طلب استرجاع الرصيد رقم #" + o.id + ".", "err");
+  await syncToCloud();
+  renderAdminData();
+  toast("تم رفض طلب الاسترجاع", "gold");
+}
+
+/* 👥 المستخدكون وإدارة الأرصدة */
+function renderUsersTable(){
+  const users = store.users;
+  document.getElementById("usersTable").innerHTML = '<tr><th>اسم المستخدم</th><th>رقم الجوال</th><th>الرصيد الحالية</th></tr>' +
+    users.map(function(u){
+      const bal = getBalance(u.phone);
+      return '<tr class="urow" onclick="openUserModal(\'' + esc(u.phone) + '\')"><td><b>' + esc(u.name) + '</b></td>' +
+        '<td>' + esc(u.phone) + '</td><td><b style="color:var(--accent)">' + money(bal) + ' USDT</b></td></tr>';
+    }).join("");
+}
+
+let activeUserPhone = null;
+function openUserModal(phone){
+  const u = store.users.find(function(x){ return x.phone === phone; });
+  if(!u) return;
+  activeUserPhone = phone;
+  const bal = getBalance(phone);
+
+  document.getElementById("umInfo").innerHTML =
+    '<div class="k">الاسم:</div><div class="v"><b>' + esc(u.name) + '</b></div>' +
+    '<div class="k">الجوال:</div><div class="v">' + esc(u.phone) + '</div>' +
+    '<div class="k">الرصيد الحالية:</div><div class="v" style="color:var(--accent);font-weight:900">' + money(bal) + ' USDT</div>';
+
+  document.getElementById("umAmount").value = "";
+  document.getElementById("umNote").value = "";
+  document.getElementById("umMsg").textContent = "";
+  document.getElementById("userModal").classList.add("show");
+}
+
+async function adminAdjust(dir){
+  const amt = parseFloat(document.getElementById("umAmount").value);
+  const note = (document.getElementById("umNote").value || "").trim();
+  if(!amt || amt <= 0) return setErr("umMsg", "❌ أدخل مبلغًا صحيحًا");
+
+  await syncFromCloud();
+
+  const phone = activeUserPhone;
+  const curBal = getBalance(phone);
+  const change = amt * dir;
+  const newBal = curBal + change;
+
+  if(newBal < 0) return setErr("umMsg", "❌ لا يمكن خصم مبلغ يتجاوز رصيد المستخدم");
+
+  setBalance(newBal, phone);
+
   const tx = getTx(phone);
-  tx.unshift({ label: label, amount: Math.abs(amount), plus: amount > 0, time: Date.now() });
+  tx.unshift({
+    title: (dir > 0 ? "إضافة رصيد " : "خصم رصيد ") + (note ? "(" + note + ")" : "من الإدارة"),
+    amt: (dir > 0 ? "+" : "-") + money(amt),
+    time: Date.now()
+  });
   setTx(tx, phone);
+
+  pushNotif(phone, (dir > 0 ? "🎁 تم إضافة " : "⚠️ تم خصم ") + money(amt) + " USDT إلى حسابك من قِبل الإدارة. " + (note ? "الملاحظة: " + note : ""), dir > 0 ? "ok" : "err");
+
+  await syncToCloud();
+
+  closeAll();
+  renderAdminData();
+  toast("✅ تم تعديل رصيد المستخدم بنجاح");
 }
 
-function addProduct(){
-  const name = document.getElementById("npName").value.trim();
-  const price = parseFloat(document.getElementById("npPrice").value);
-  const old = parseFloat(document.getElementById("npOld").value);
-  const cat = document.getElementById("npCat").value.trim() || "شدات UC";
-  const img = document.getElementById("npImg").value.trim() || "🪙";
-  const desc = document.getElementById("npDesc").value.trim();
-  const photos = document.getElementById("npPhoto").value.split("\n")
-    .map(function(s){ return s.trim(); })
-    .filter(Boolean);
+/* 📦 إدارة باقات الشدات */
+function renderProductsTable(){
+  const prods = store.products;
+  document.getElementById("prodTable").innerHTML = '<tr><th>الباقة</th><th>السعر</th><th>التصنيف</th><th>إجراء</th></tr>' +
+    prods.map(function(p){
+      return '<tr><td><b>' + esc(p.name) + '</b></td><td>' + money(p.price) + ' USDT</td><td>' + esc(p.cat || "شدات") + '</td>' +
+        '<td><button class="mini no" onclick="deleteProduct(' + p.id + ')">حذف ✕</button></td></tr>';
+    }).join("");
+}
 
-  if(!name || !(price > 0)) return alert("أدخل اسمًا وسعرًا صحيحين");
+async function addProduct(){
+  const name  = (document.getElementById("npName").value || "").trim();
+  const price = parseFloat(document.getElementById("npPrice").value);
+  const old   = parseFloat(document.getElementById("npOld").value) || 0;
+  const cat   = (document.getElementById("npCat").value || "").trim() || "شدات UC";
+  const img   = (document.getElementById("npImg").value || "").trim() || "🪙";
+  const desc  = (document.getElementById("npDesc").value || "").trim();
+  const photoText = (document.getElementById("npPhoto").value || "").trim();
+  const photos = photoText ? photoText.split("\n").map(function(s){ return s.trim(); }).filter(Boolean) : [];
+
+  if(!name || isNaN(price) || price <= 0) return window.showAlert("يرجى كتابة اسم الباقة وإدخال سعر صحيح أكبر من 0.", "خطأ في البيانات", "error");
+
+  await syncFromCloud();
 
   const prods = store.products;
-  prods.push({
-    id: Date.now(),
-    name: name,
-    price: price,
-    old: old || null,
-    img: img,
-    cat: cat,
-    desc: desc,
-    photos: photos
-  });
+  const newId = prods.length ? Math.max.apply(null, prods.map(function(p){ return p.id; })) + 1 : 1;
+
+  prods.push({ id: newId, name: name, price: price, old: old, cat: cat, img: img, desc: desc, photos: photos });
   store.products = prods;
+
+  await syncToCloud();
 
   document.getElementById("npName").value = "";
   document.getElementById("npPrice").value = "";
   document.getElementById("npOld").value = "";
-  document.getElementById("npCat").value = "";
-  document.getElementById("npImg").value = "";
   document.getElementById("npPhoto").value = "";
   document.getElementById("npDesc").value = "";
 
+  renderAdminData();
   refreshAll();
-  renderAdminTables();
-  toast("✅ تم إضافة الباقة بنجاح");
+  toast("✅ تم إضافة باقة الشدات الجديدة!");
 }
 
-function addProduct(){
-  const name = document.getElementById("npName").value.trim();
-  const price = parseFloat(document.getElementById("npPrice").value);
-  const old = parseFloat(document.getElementById("npOld").value);
-  const cat = document.getElementById("npCat").value.trim() || "شدات UC";
-  const img = document.getElementById("npImg").value.trim() || "🪙";
-  const desc = document.getElementById("npDesc").value.trim();
-  const photos = document.getElementById("npPhoto").value.split("\n").map(function(s){ return s.trim(); }).filter(Boolean);
+async function deleteProduct(id){
+  const confirm = await window.showConfirm("هل أنت تأكد من حذف هذه الباقة كلياً من المتجر؟", "حذف باقة", "error");
+  if(!confirm) return;
 
-  if(!name || !(price > 0)) return alert("أدخل اسمًا وسعرًا صحيحين");
-  const prods = store.products;
-  prods.push({ id: Date.now(), name: name, price: price, old: old || null, img: img, cat: cat, desc: desc, photos: photos });
-  store.products = prods;
-  refreshAll(); renderAdminTables();
-  toast("✅ تم إضافة الباقة بنجاح");
+  await syncFromCloud();
+  store.products = store.products.filter(function(p){ return p.id !== id; });
+  await syncToCloud();
+
+  renderAdminData();
+  refreshAll();
+  toast("تم حذف الباقة بنجاح");
 }
 
-function addPromo(){
-  const title = document.getElementById("prTitle").value.trim();
-  const percent = parseFloat(document.getElementById("prPercent").value);
-  const scope = document.getElementById("prScope").value;
-  const productId = parseInt(document.getElementById("prProduct").value);
-
-  if(!title || !(percent > 0)) return setErr("prMsg", "❌ أدخل بيانات العرض بشكل صحيح");
-  const promos = store.promos;
-  promos.push({ id: Date.now(), title: title, percent: percent, scope: scope, productId: productId, active: true });
-  store.promos = promos;
-  refreshAll(); renderAdminTables();
-  setOk("prMsg", "✅ أُضيف العرض");
-}
-
-/* ═══════════ عرض وإدارة العروض ═══════════ */
-function renderPromoTable(){
-  const box = document.getElementById("promoTable");
-  if(!box) return;
-  const promos = store.promos;
-  box.innerHTML =
-    (promos.length ? '<div style="font-size:13px;font-weight:800;margin:10px 0 8px">🏷️ العروض الحالية (' + promos.length + ')</div>' : '') +
-    (promos.map(function(pr){
-      const prod = store.products.find(function(p){ return p.id === +pr.productId; });
-      const target = pr.scope === "product" && prod ? esc(prod.name) : "كل الباقات";
-      return '<div class="deal" style="margin:0 0 9px"><div class="inf">' +
-        '<b>' + esc(pr.title) + ' — ' + pr.percent + '%</b>' +
-        '<span style="font-size:11px;color:var(--mut);display:block">' + target + '</span>' +
-        '<span class="badge ' + (pr.active ? "b-ok" : "b-no") + '">' + (pr.active ? "مفعّل" : "موقوف") + '</span>' +
-        '</div>' +
-        '<div style="display:flex;gap:6px;flex-direction:column">' +
-        '<button class="mini gold" onclick="togglePromo(' + pr.id + ')">' + (pr.active ? "إيقاف" : "تفعيل") + '</button>' +
-        '<button class="mini no" onclick="deletePromo(' + pr.id + ')">حذف</button>' +
-        '</div></div>';
-    }).join("") || '<div class="empty" style="padding:16px 0">لا عروض حاليًا</div>');
-}
-
-function deletePromo(id){
-  if(!can("promos")) return toast("❌ لا تملك صلاحية العروض", "err");
-  if(!confirm("حذف هذا العرض؟")) return;
-  store.promos = store.promos.filter(function(p){ return p.id !== id; });
-  refreshAll(); renderAdminTables();
-  toast("🗑️ تم حذف العرض");
-}
-
-function togglePromo(id){
-  if(!can("promos")) return toast("❌ لا تملك صلاحية العروض", "err");
-  const pr = store.promos.find(function(p){ return p.id === id; });
-  if(!pr) return;
-  pr.active = !pr.active;
-  store.promos = store.promos;
-  refreshAll(); renderAdminTables();
-  toast(pr.active ? "✅ تم تفعيل العرض" : "⏸️ تم إيقاف العرض", "gold");
-}
-
-function fillProductSelect(){
+function updatePromoProductSelect(){
   const sel = document.getElementById("prProduct");
   if(!sel) return;
   sel.innerHTML = store.products.map(function(p){
@@ -1911,342 +2165,301 @@ function fillProductSelect(){
   }).join("");
 }
 
-/* ─── إعدادات البانر والمؤقت ─── */
-function fillBannerCfg(){
+/* 🏷️ العروض والخصومات */
+function renderPromosTable(){
+  const promos = store.promos;
+  document.getElementById("promoTable").innerHTML = promos.map(function(pr, idx){
+    return '<div class="tx" style="margin:0 0 8px"><div><b>' + esc(pr.title) + ' (خصم ' + pr.percent + '%)</b>' +
+      '<span>' + (pr.scope === "all" ? "يشمل كل الباقات" : "باقة محددة") + '</span></div>' +
+      '<button class="mini no" onclick="deletePromo(' + idx + ')">حذف العرض ✕</button></div>';
+  }).join("") || '<div class="empty" style="padding:10px 0">لا توجد عروض ترويجية بعد</div>';
+}
+
+async function addPromo(){
+  const title   = (document.getElementById("prTitle").value || "").trim();
+  const percent = parseFloat(document.getElementById("prPercent").value);
+  const scope   = document.getElementById("prScope").value;
+  const prodId  = document.getElementById("prProduct").value;
+
+  if(!title || isNaN(percent) || percent <= 0) return setErr("prMsg", "❌ أدخل عنوان العرض ونسبة الخصم الصحيحة");
+
+  await syncFromCloud();
+
+  const promos = store.promos;
+  promos.push({ title: title, percent: percent, scope: scope, productId: prodId, active: true });
+  store.promos = promos;
+
+  await syncToCloud();
+
+  document.getElementById("prTitle").value = "";
+  document.getElementById("prPercent").value = "";
+  setOk("prMsg", "✅ تم إضافة العرض بنجاح!");
+
+  renderPromosTable();
+  refreshAll();
+}
+
+async function deletePromo(idx){
+  await syncFromCloud();
+  const promos = store.promos;
+  promos.splice(idx, 1);
+  store.promos = promos;
+  await syncToCloud();
+
+  renderPromosTable();
+  refreshAll();
+  toast("تم حذف العرض");
+}
+
+/* 🖼️ إعدادات البانر والمؤقت */
+function populateBannerForm(){
   const b = getBanner();
   document.getElementById("bnShow").checked = !!b.show;
   document.getElementById("bnKicker").value = b.kicker || "";
-  document.getElementById("bnBig").value = b.big || "";
+  document.getElementById("bnBig").value    = b.big || "";
   document.getElementById("bnEndsLabel").value = b.endsLabel || "";
   document.getElementById("bnTimer").checked = !!b.timer;
   document.getElementById("bnTimerMode").value = b.timerMode || "daily";
-  document.getElementById("bnTimerEnd").value = b.timerEnd || "";
+  document.getElementById("bnTimerEnd").value  = b.timerEnd || "";
+  document.getElementById("bnTimerEndWrap").style.display = b.timerMode === "custom" ? "block" : "none";
   document.getElementById("bnEndedMsg").checked = !!b.endedMsg;
-  document.getElementById("bnTimerEndWrap").style.display = (b.timerMode === "custom") ? "block" : "none";
 }
-function saveBanner(){
-  const banner = {
+
+async function saveBanner(){
+  await syncFromCloud();
+
+  const b = {
     show: document.getElementById("bnShow").checked,
-    kicker: document.getElementById("bnKicker").value.trim(),
-    big: document.getElementById("bnBig").value.trim(),
-    endsLabel: document.getElementById("bnEndsLabel").value.trim(),
+    kicker: (document.getElementById("bnKicker").value || "").trim(),
+    big: (document.getElementById("bnBig").value || "").trim(),
+    endsLabel: (document.getElementById("bnEndsLabel").value || "").trim(),
     timer: document.getElementById("bnTimer").checked,
     timerMode: document.getElementById("bnTimerMode").value,
     timerEnd: document.getElementById("bnTimerEnd").value,
     endedMsg: document.getElementById("bnEndedMsg").checked
   };
-  setBanner(banner);
-  renderBanner(); updateTimer();
-  setOk("bnMsg", "✅ تم حفظ البانر — افتح صفحة العروض لرؤية التغييرات");
-  toast("✅ تم تحديث البانر والمؤقت", "gold");
-}
 
-/* ═══════════ إدارة المدراء (المالك فقط) ═══════════ */
-function permCheckboxes(containerId, permsObj){
-  const box = document.getElementById(containerId);
-  box.innerHTML = PERMS.map(function(p){
-    const on = !permsObj || permsObj[p.key] === true;
-    return '<label class="perm-item"><input type="checkbox" data-perm="' + p.key + '"' + (on ? " checked" : "") + '><span>' + p.label + '</span></label>';
-  }).join("");
-}
-function readPermCheckboxes(containerId){
-  const o = {};
-  document.querySelectorAll("#" + containerId + ' input[data-perm]').forEach(function(cb){
-    o[cb.dataset.perm] = cb.checked;
-  });
-  return o;
-}
-function fillAdminsPanel(){
-  const sel = document.getElementById("amUser");
-  const cur = sel.value;
-  sel.innerHTML = '<option value="">— إدخال يدوي —</option>' + store.users.map(function(u){
-    return '<option value="' + esc(u.phone) + '" data-name="' + esc(u.name) + '">' + esc(u.name) + ' — ' + esc(u.phone) + '</option>';
-  }).join("");
-  sel.value = cur;
-
-  permCheckboxes("amPerms", allPermsTrue());
-
-  const list = db.admins || [];
-  document.getElementById("adminsList").innerHTML =
-    '<div style="font-size:13px;font-weight:800;margin-bottom:8px">🛡️ المدراء الحاليون (' + list.length + ')</div>' +
-    (list.map(function(a){
-      const onPerms = PERMS.filter(function(p){ return a.perms && a.perms[p.key]; });
-      return '<div class="deal" style="margin:0 0 9px"><div class="inf"><b>' + esc(a.name) + '</b>' +
-        '<span style="font-size:11px;color:var(--mut);direction:ltr;display:block">' + esc(a.phone || "—") + '</span>' +
-        '<span style="font-size:11px;color:var(--accent)">' + onPerms.length + ' صلاحية</span></div>' +
-        '<div style="display:flex;gap:6px;flex-direction:column"><button class="mini gold" onclick="toggleAdminPerms(\'' + esc(a.id) + '\')">تعديل الصلاحيات</button>' +
-        '<button class="mini no" onclick="removeAdmin(\'' + esc(a.id) + '\')">حذف</button></div></div>' +
-        '<div id="edit-' + esc(a.id) + '" style="display:none;background:rgba(0,0,0,.25);border-radius:14px;padding:12px;margin:-4px 0 10px">' +
-        '<div id="editperms-' + esc(a.id) + '"></div>' +
-        '<div class="row-flex" style="margin-top:10px"><button class="btn gold" style="padding:10px" onclick="saveAdminPerms(\'' + esc(a.id) + '\')">💾 حفظ الصلاحيات</button>' +
-        '<button class="btn gray" style="padding:10px" onclick="toggleAdminPerms(\'' + esc(a.id) + '\')">إلغاء</button></div></div>';
-    }).join("") || '<div class="empty" style="padding:14px 0">لا مدراء بعد</div>');
-}
-function toggleAdminPerms(id){
-  const a = (db.admins || []).find(function(x){ return x.id === id; });
-  if(!a) return;
-  const box = document.getElementById("edit-" + id);
-  const open = box.style.display !== "none";
-  if(!open){
-    permCheckboxes("editperms-" + id, a.perms);
-    box.style.display = "block";
-  } else box.style.display = "none";
-}
-function saveAdminPerms(id){
-  const a = (db.admins || []).find(function(x){ return x.id === id; });
-  if(!a) return;
-  a.perms = readPermCheckboxes("editperms-" + id);
-  scheduleSave();
-  renderAdminTables();
-  toast("✅ تم تحديث صلاحيات " + a.name, "gold");
-}
-async function addAdminAccount(){
-  if(!isOwner()) return toast("❌ المالك فقط يستطيع إضافة مدراء", "err");
-  const name = document.getElementById("amName").value.trim();
-  const phone = document.getElementById("amPhone").value.trim();
-  const pass = document.getElementById("amPass").value;
-
-  if(name.length < 2) return setErr("amMsg", "❌ أدخل اسم المدير");
-  if(!/^\+\d{8,15}$/.test(phone)) return setErr("amMsg", "❌ أدخل رقم هاتف صحيحًا");
-  if(pass.length < 6) return setErr("amMsg", "❌ كلمة السر 6 خانات على الأقل");
-  if(phone === ADMIN_PHONE) return setErr("amMsg", "❌ هذا رقم المالك");
-  if((db.admins || []).some(function(a){ return a.phone === phone; }))
-    return setErr("amMsg", "❌ يوجد مدير بهذا الرقم بالفعل");
-
-  const btn = document.querySelector("#pnAdmins .btn.gold");
-  btn.disabled = true; btn.innerHTML = '<span class="spin"></span>جارٍ الحفظ...';
-
-  db.admins = db.admins || [];
-  db.admins.push({
-    id: "adm_" + Date.now(),
-    name: name,
-    phone: phone,
-    adminPass: await hash(pass),
-    perms: readPermCheckboxes("amPerms")
-  });
-  scheduleSave();
+  setBanner(b);
   await syncToCloud();
 
-  btn.disabled = false; btn.innerHTML = "👑 إضافة المدير";
-
-  document.getElementById("amName").value = "";
-  document.getElementById("amPhone").value = "";
-  document.getElementById("amPass").value = "";
-  document.getElementById("amUser").value = "";
-  setOk("amMsg", "✅ أُضيف المدير بنجاح");
-  toast("👑 أُضيف مدير جديد: " + name, "gold");
-  notifyAdmin("🛡️ <b>مدير جديد</b>\n\n📛 " + esc(name) + "\n📱 " + esc(phone));
-  renderAdminTables();
-}
-function removeAdmin(id){
-  if(!isOwner()) return toast("❌ المالك فقط", "err");
-  const a = (db.admins || []).find(function(x){ return x.id === id; });
-  if(!a) return;
-  if(!confirm("حذف المدير «" + a.name + "» نهائيًا؟")) return;
-  db.admins = db.admins.filter(function(x){ return x.id !== id; });
-  scheduleSave();
-  renderAdminTables();
-  toast("🗑️ تم حذف المدير " + a.name);
+  setOk("bnMsg", "✅ تم حفظ إعدادات البانر والمؤقت بنجاح!");
+  renderBanner();
+  updateTimer();
 }
 
-/* ═══════════ فتح اللوحة حسب الصلاحيات ═══════════ */
-function applyAdminPerms(){
-  const map = {
-    pnAdmins: null, pnDanger: null,
-    pnBanner: "banner",
-    pnOrders: "orders", pnOrdersList: "orders",
-    pnTopups: "topups", pnWithdraws: "topups",
-    pnUsers: "users",
-    pnPromos: "promos",
-    pnProducts: "products", pnProductsList: "products",
-    pnConfig: "config"
-  };
-  Object.keys(map).forEach(function(id){
-    const el = document.getElementById(id);
-    if(!el) return;
-    const need = map[id];
-    const show = isOwner() ? true : (need ? can(need) : false);
-    el.style.display = show ? "block" : "none";
-  });
-
-  const tag = document.getElementById("adminRoleTag");
-  if(isOwner()){ tag.className = "role-tag b-owner"; tag.textContent = "👑 المالك"; }
-  else { tag.className = "role-tag b-wait"; tag.textContent = "🛡️ مدير"; }
-}
-
-function openAdmin(){
-  const s = store.session;
-  if(!s || !s.admin) return toast("❌ دخول الإدارة يتم من شاشة الدخول", "err");
-  document.body.classList.add("admin");
-  document.getElementById("adminBody").style.display = "block";
-  fillBannerCfg();
-  fillProductSelect();
-  renderAdminTables();
-  applyAdminPerms();
-}
-function closeAdmin(){ document.body.classList.remove("admin"); }
-
-function renderAdminTables(){
-  const orders = store.orders;
-  const rev = orders.filter(function(o){ return o.status === "approved" && o.type === "order"; })
-    .reduce(function(s,o){ return s + o.amount; }, 0);
-  const sg = document.getElementById("adminStats");
-  if(sg) sg.innerHTML =
-    '<div class="stat"><span>الباقات</span><b>' + store.products.length + '</b></div>' +
-    '<div class="stat"><span>الطلبات</span><b>' + orders.length + '</b></div>' +
-    '<div class="stat"><span>معلّقة</span><b>' + orders.filter(function(o){ return o.status === "pending"; }).length + '</b></div>' +
-    '<div class="stat"><span>الإيرادات</span><b>' + money(rev) + '</b></div>' +
-    '<div class="stat"><span>المستخدمون</span><b>' + store.users.length + '</b></div>' +
-    '<div class="stat"><span>المدراء</span><b>' + (db.admins || []).length + '</b></div>';
-
-  const pt = document.getElementById("prodTable");
-  if(pt) pt.innerHTML = '<tr><th>#</th><th>اسم الباقة</th><th>السعر</th><th>إجراء</th></tr>' +
-    store.products.map(function(p){
-      return '<tr><td>' + p.id + '</td><td>' + esc(p.name) + '</td><td>' + money(p.price) + '</td>' +
-        '<td><button class="mini no" onclick="delProduct(' + p.id + ')">حذف</button></td></tr>';
-    }).join("");
-
-  const ot = document.getElementById("ordersTable");
-  if(ot) ot.innerHTML = '<tr><th>#</th><th>المستخدم</th><th>النوع</th><th>المبلغ</th><th>الحالة</th></tr>' +
-    orders.map(function(o){
-      const typeL = { topup: "شحن رصيد", withdraw: "استرجاع", order: "شراء" };
-      return '<tr><td>' + o.id + '</td><td>' + esc(o.customer) + '</td><td>' + (typeL[o.type] || o.type) + '</td><td>' + money(o.amount) + '</td><td>' + o.status + '</td></tr>';
-    }).join("");
-
-  const ut = document.getElementById("usersTable");
-  if(ut) ut.innerHTML = '<tr><th>الاسم</th><th>الهاتف</th><th>الرصيد</th></tr>' +
-    store.users.map(function(u){
-      return '<tr class="urow" onclick="openUserModal(\'' + u.phone + '\')"><td>' + esc(u.name) + '</td><td>' + esc(u.phone) + '</td><td>' + money(getBalance(u.phone)) + ' USDT</td></tr>';
-    }).join("");
-
-  const tops = orders.filter(function(o){ return o.type === "topup" && o.status === "pending"; });
-  const tl = document.getElementById("topupList");
-  if(tl) tl.innerHTML = tops.map(function(o){
-    return '<div class="deal" style="margin:0 0 9px"><div class="inf"><b>#' + o.id + ' — ' + esc(o.customer) + '</b>' +
-      '<span style="font-size:11px;color:var(--mut)">' + esc(o.phone) + '</span></div>' +
-      '<div class="p">' + money(o.amount) + '</div>' +
-      '<div style="display:flex;gap:6px"><button class="mini ok" onclick="decideTopupById(' + o.id + ',\'approved\')">قبول</button>' +
-      '<button class="mini no" onclick="decideTopupById(' + o.id + ',\'rejected\')">رفض</button></div></div>';
-  }).join("") || '<div class="empty" style="padding:16px 0">لا طلبات شحن معلّقة</div>';
-
-  const wds = orders.filter(function(o){ return o.type === "withdraw" && o.status === "pending"; });
-  const wl = document.getElementById("withdrawList");
-  if(wl) wl.innerHTML = wds.map(function(o){
-    return '<div class="deal" style="margin:0 0 9px"><div class="inf"><b>#' + o.id + ' — ' + esc(o.customer) + '</b>' +
-      '<span style="font-size:11px;color:var(--mut);direction:ltr;display:block">' + esc(o.wallet) + '</span></div>' +
-      '<div class="p">' + money(o.amount) + '</div>' +
-      '<div style="display:flex;gap:6px"><button class="mini ok" onclick="decideTopupById(' + o.id + ',\'approved\')">قبول</button>' +
-      '<button class="mini no" onclick="decideTopupById(' + o.id + ',\'rejected\')">رفض</button></div></div>';
-  }).join("") || '<div class="empty" style="padding:16px 0">لا طلبات استرجاع معلّقة</div>';
-
-  renderPromoTable();
-  fillProductSelect();
-  if(isOwner() && document.body.classList.contains("admin")) fillAdminsPanel();
-}
-
-function openUserModal(phone){
-  if(!can("users")) return toast("❌ لا تملك صلاحية إدارة المستخدمين", "err");
-  const u = store.users.find(function(x){ return x.phone === phone; });
-  if(!u) return;
-  document.getElementById("umInfo").innerHTML =
-    '<div class="k">الاسم</div><div class="v">' + esc(u.name) + '</div>' +
-    '<div class="k">الهاتف</div><div class="v"><code>' + esc(u.phone) + '</code></div>' +
-    '<div class="k">الرصيد</div><div class="v">' + money(getBalance(phone)) + ' USDT</div>';
-  window._umPhone = phone;
-  document.getElementById("umAmount").value = "";
-  document.getElementById("umNote").value = "";
-  document.getElementById("umMsg").textContent = "";
-  document.getElementById("userModal").classList.add("show");
-}
-function adminAdjust(sign){
-  if(!can("users")) return toast("❌ لا تملك صلاحية إدارة المستخدمين", "err");
-  const amt = parseFloat(document.getElementById("umAmount").value);
-  const note = document.getElementById("umNote").value.trim() || (sign > 0 ? "إضافة من المدير" : "خصم من المدير");
-  if(!(amt > 0)) return setErr("umMsg", "❌ أدخل مبلغًا صحيحًا");
-  addBalanceTo(window._umPhone, sign * amt, note);
-  pushNotif(window._umPhone, (sign > 0 ? "➕ تم إضافة " : "➖ تم خصم ") + money(amt) + " USDT — " + note, sign > 0 ? "ok" : "err");
-  renderAdminTables(); refreshAll();
-  setOk("umMsg", "✅ تم تنفيذ العملية");
-}
-function decideTopupById(id, status){
-  if(!can("topups") && !can("orders")) return toast("❌ لا تملك صلاحية الموافقة", "err");
-  processOrderDecision(id, status);
-  toast(status === "approved" ? "✅ تم قبول الطلب" : "❌ تم رفض الطلب", status === "approved" ? "gold" : "err");
-}
-function delProduct(id){
-  if(!can("products")) return toast("❌ لا تملك صلاحية إدارة الباقات", "err");
-  if(!confirm("حذف هذه الباقة؟")) return;
-  store.products = store.products.filter(function(p){ return p.id !== id; });
-  refreshAll(); renderAdminTables();
-}
-
-function saveCfg(){
-  if(!can("config")) return toast("❌ لا تملك صلاحية الإعدادات", "err");
-  store.cfg = {
-    token: document.getElementById("cfgToken").value.trim(),
-    chat: document.getElementById("cfgChat").value.trim(),
-    wallet: document.getElementById("cfgWallet").value.trim(),
-    support: document.getElementById("cfgSupport").value.trim()
-  };
-  setOk("cfgMsg", "✅ تم حفظ الإعدادات");
-}
-function loadCfg(){
+/* 🤖 إعدادات البوت والـ Telegram */
+function populateConfigForm(){
   const c = store.cfg;
-  document.getElementById("cfgToken").value = c.token || "";
-  document.getElementById("cfgChat").value = c.chat || "";
-  document.getElementById("cfgWallet").value = c.wallet || "";
+  document.getElementById("cfgToken").value   = c.token || "";
+  document.getElementById("cfgChat").value    = c.chatId || "";
+  document.getElementById("cfgWallet").value  = c.wallet || "";
   document.getElementById("cfgSupport").value = c.support || "";
 }
 
-function testTG(){
-  notifyAdmin("🔔 <b>اختبار الاتصال بـ NOVA Store</b>\n\nتم ربط البوت بنجاح!").then(function(ok){
-    if(ok) setOk("cfgMsg", "✅ وصل الإشعار لتيليجرام");
-    else setErr("cfgMsg", "❌ فشل الإرسال — تحقق من البيانات");
-  });
-}
-
-function wipeAll(){
-  if(!isOwner()) return toast("❌ المالك فقط", "err");
-  if(confirm("هل أنت متأكد من مسح كل البيانات كلياً؟")){
-    db = normalizeDb({ products: DEFAULT_PRODUCTS, users: [], orders: [], promos: [],
-      banner: DEFAULT_BANNER, cfg: {}, balances: {}, txs: {}, notifs: {}, reqSeq: 0, admins: [] });
-    syncToCloud();
-    location.reload();
-  }
-}
-
-/* ═══════════ التحديث العام ═══════════ */
-function refreshAll(){
-  renderChips();
-  renderProducts();
-  renderDeals();
-  renderBalance();
-  renderAccount();
-  updateMailBadge();
-  fillProductSelect();
-  renderBanner(); updateTimer(); renderActivePromos();
-  if(document.body.classList.contains("admin")){
-    renderAdminTables();
-    applyAdminPerms();
-  }
-}
-
-/* ═══════════ تهيئة التطبيق ═══════════ */
-window.onload = async function(){
-  renderBanner(); updateTimer();
+async function saveCfg(){
   await syncFromCloud();
+
+  const c = {
+    token: (document.getElementById("cfgToken").value || "").trim(),
+    chatId: (document.getElementById("cfgChat").value || "").trim(),
+    wallet: (document.getElementById("cfgWallet").value || "").trim(),
+    support: (document.getElementById("cfgSupport").value || "").trim()
+  };
+
+  store.cfg = c;
+  await syncToCloud();
+
+  setOk("cfgMsg", "✅ تم حفظ إعدادات البوت والمحفظة!");
+}
+
+async function testTG(){
+  const c = store.cfg;
+  if(!c.token || !c.chatId) return window.showAlert("يرجى إدخال Token و Chat ID أولاً لحفظ الإعدادات.", "بيانات ناقصة", "warn");
+  toast("جارٍ إرسال رسالة الاختبار إلى تيليجرام...");
+
+  try{
+    const res = await fetch("https://api.telegram.org/bot" + c.token + "/sendMessage", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ chat_id: c.chatId, text: "🔔 اختبار الإشعارات من متجر NOVA Store بنجاح!", parse_mode: "HTML" })
+    });
+    if(res.ok) window.showAlert("تم إرسال رسالة الاختبار بنجاح إلى حسابك في تيليجرام! 🎉", "نجاح الاتصال", "success");
+    else window.showAlert("فشل إرسال الرسالة! تأكد من صحة التوكن و Chat ID وأتك بدأت المحادثة مع البوت.", "فشل الاتصال", "error");
+  }catch(e){
+    window.showAlert("خطأ بالاتصال مع خوادم تيليجرام.", "خطأ شبكة", "error");
+  }
+}
+
+function notifyAdmin(msgText){
+  const c = store.cfg;
+  if(!c.token || !c.chatId) return;
+  fetch("https://api.telegram.org/bot" + c.token + "/sendMessage", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ chat_id: c.chatId, text: msgText, parse_mode: "HTML" })
+  }).catch(function(e){ console.error("TG notify error:", e); });
+}
+
+/* الاستماع لأوامر Telegram (Polling) */
+let isPolling = false;
+let pollOffset = 0;
+
+function togglePolling(){
+  const c = store.cfg;
+  if(!c.token) return window.showAlert("أدخل توكن البوت أولاً للتفعيل!", "تنبيه", "warn");
+
+  isPolling = !isPolling;
+  const btn = document.getElementById("pollBtn");
+  const msg = document.getElementById("pollMsg");
+
+  if(isPolling){
+    btn.textContent = "🛑 إيقاف الاستماع لأوامر تيليجرام";
+    btn.className = "btn red";
+    setOk("pollMsg", "🤖 جاري الاستماع للأوامر من تيليجرام مباشرة...");
+    pollTelegramUpdates();
+  } else {
+    btn.textContent = "🤖 تشغيل الاستماع لأوامر تيليجرام";
+    btn.className = "btn";
+    msg.textContent = "";
+  }
+}
+
+async function pollTelegramUpdates(){
+  if(!isPolling) return;
+  const c = store.cfg;
+  try{
+    const res = await fetch("https://api.telegram.org/bot" + c.token + "/getUpdates?offset=" + pollOffset + "&timeout=10");
+    if(res.ok){
+      const data = await res.json();
+      if(data.result && data.result.length){
+        for(let i=0; i<data.result.length; i++){
+          const up = data.result[i];
+          pollOffset = up.update_id + 1;
+          if(up.message && up.message.text){
+            await handleTGCommand(up.message);
+          }
+        }
+      }
+    }
+  }catch(e){
+    console.error("Polling error:", e);
+  }
+  if(isPolling) setTimeout(pollTelegramUpdates, 1500);
+}
+
+async function handleTGCommand(msg){
+  const text = msg.text.trim();
+  const chatId = String(msg.chat.id);
+  const cfg = store.cfg;
+
+  if(cfg.chatId && chatId !== String(cfg.chatId)) return; // للآمان المالك فقط
+
+  const parts = text.split(" ");
+  const cmd = parts[0].toLowerCase();
+
+  let reply = "";
+
+  if(cmd === "/start" || cmd === "/help"){
+    reply = "👋 أهلًا بك في بوت التحكم ومتجر NOVA Store!\n\nالأوامر المتاحة:\n/orders - الطلبات المعلقة\n/approve ID - قبول طلب\n/reject ID - رفض طلب\n/addbalance phone amount - إضافة رصيد\n/stats - الإحصائيات";
+  }
+  else if(cmd === "/orders"){
+    const pending = store.orders.filter(function(o){ return o.status === "pending"; });
+    if(!pending.length) reply = "✅ لا توجد طلبات معلقة حاليًا.";
+    else {
+      reply = "📋 الطلبات المعلقة (" + pending.length + "):\n\n" +
+        pending.map(function(o){ return "🆔 #" + o.id + " | " + o.name + " | " + (o.total || o.amount) + " USDT"; }).join("\n");
+    }
+  }
+  else if(cmd === "/approve"){
+    const id = parseInt(parts[1]);
+    if(id){
+      const o = store.orders.find(function(x){ return x.id === id; });
+      if(o && o.type === "topup"){ await approveTopup(id); reply = "✅ تم قبول طلب شحن الرصيد #" + id; }
+      else if(o && o.type === "withdraw"){ await approveWithdraw(id); reply = "✅ تم قبول طلب الاسترجاع #" + id; }
+      else if(o){ await approveOrder(id); reply = "✅ تم قبول وتنفيذ الطلب #" + id; }
+      else reply = "❌ لم يتم العثور على الطلب #" + id;
+    } else reply = "❌ اكتب الأمر كالتالي: /approve 12";
+  }
+  else if(cmd === "/reject"){
+    const id = parseInt(parts[1]);
+    if(id){
+      const o = store.orders.find(function(x){ return x.id === id; });
+      if(o && o.type === "topup"){ await rejectTopup(id); reply = "❌ تم رفض طلب شحن الرصيد #" + id; }
+      else if(o && o.type === "withdraw"){ await rejectWithdraw(id); reply = "❌ تم رفض طلب الاسترجاع #" + id; }
+      else if(o){ await rejectOrder(id); reply = "❌ تم رفض الطلب #" + id; }
+      else reply = "❌ لم يتم العثور على الطلب #" + id;
+    } else reply = "❌ اكتب الأمر كالتالي: /reject 12";
+  }
+  else if(cmd === "/addbalance"){
+    const phone = parts[1];
+    const amt = parseFloat(parts[2]);
+    if(phone && amt > 0){
+      await syncFromCloud();
+      const curBal = getBalance(phone);
+      setBalance(curBal + amt, phone);
+      pushNotif(phone, "🎁 تم إضافة " + money(amt) + " USDT إلى حسابك من البوت!", "ok");
+      await syncToCloud();
+      reply = "✅ تم إضافة " + money(amt) + " USDT للحساب " + phone;
+    } else reply = "❌ اكتب الأمر كالتالي: /addbalance +9665xxxxxxx 50";
+  }
+  else if(cmd === "/stats"){
+    reply = "📊 إحصائيات المتجر:\n👥 المستخدمون: " + store.users.length + "\n📦 الباقات: " + store.products.length + "\n🧾 إجمالي الطلبات: " + store.orders.length;
+  }
+
+  if(reply){
+    fetch("https://api.telegram.org/bot" + cfg.token + "/sendMessage", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ chat_id: chatId, text: reply })
+    });
+  }
+}
+
+/* 🗑️ مسح كل البيانات */
+async function wipeAll(){
+  const confirm = await window.showConfirm("⚠️ تحذير شديد الخطورة: هل أنت تأكد تماماً من حذف جميع بيانات المتجر والمستخدمين والطلبات بصفة نهائية؟", "حذف كافة البيانات السحابية", "error");
+  if(!confirm) return;
+
+  db = {
+    products: DEFAULT_PRODUCTS,
+    users: [], orders: [], promos: [], banner: DEFAULT_BANNER,
+    cfg: {}, balances: {}, txs: {}, notifs: {}, reqSeq: 0, admins: []
+  };
+
+  await syncToCloud();
+  window.showAlert("تم مسح كافة البيانات وحفظ الإعدادات الافتراضية بنجاح.", "تم المسح", "info");
+  location.reload();
+}
+
+/* ═══════════ تحديث واجهة التطبيق كاملة ═══════════ */
+function refreshAll(){
   const s = store.session;
   if(s){
-    if(s.admin && s.role !== "owner"){
-      const still = (db.admins || []).some(function(a){ return a.phone === s.phone; });
-      if(!still){ s.admin = false; store.session = s; }
-    }
+    document.getElementById("heroName").textContent = s.name;
+    const b = getBalance(s.phone);
+    document.getElementById("hdrBalance").textContent = money(b);
+  }
+  renderChips();
+  renderProducts();
+  renderBanner();
+  updateTimer();
+  renderActivePromos();
+  renderDeals();
+  updateMailBadge();
+}
+
+/* ═══════════ تهيئة الموقع والبدء ═══════════ */
+window.addEventListener("DOMContentLoaded", async function(){
+  await syncFromCloud();
+
+  const sess = store.session;
+  if(sess){
     applySessionUI();
     refreshAll();
-    if(s.admin) openAdmin();
+  } else {
+    document.body.classList.remove("logged");
   }
-  loadCfg();
-};
+});
 </script>
 </body>
 </html>
